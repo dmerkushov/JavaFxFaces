@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>ru.dmerkushov</groupId>
+	<artifactId>JavaFxFaces</artifactId>
+	<version>1.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<modules>
+		<module>JavaFxFaces-Core</module>
+		<module>JavaFxFaces-Docks-General</module>
+		<module>JavaFxFaces-Docks-IconTabbed</module>
+		<module>JavaFxFaces-Docks-Table</module>
+	</modules>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<fxfaces.version>${project.version}</fxfaces.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+
+		<prefconf.version>0.2</prefconf.version>
+		<args4j.version>2.33</args4j.version>
+		<log-helper.version>2.1.0-SNAPSHOT</log-helper.version>
+	</properties>
+</project>
