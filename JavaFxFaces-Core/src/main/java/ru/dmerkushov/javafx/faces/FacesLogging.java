@@ -26,9 +26,8 @@ public class FacesLogging {
 		for (Handler handler : facesLoggerWrapper.getLogger ().getHandlers ()) {
 			handler.setFormatter (lf);
 			handler.setLevel (FacesConfiguration.getLoggingLevel ());
+			facesLoggerWrapper.warning ("Logging level set to " + FacesConfiguration.getLoggingLevel ());
 		}
-
-		facesLoggerWrapper.configureByDefault (null);
 	}
 
 }

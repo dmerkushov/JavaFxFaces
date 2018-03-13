@@ -32,11 +32,10 @@ public class FacesMain extends Application {
 	public static void main (String[] args) throws Exception {
 		CommandLine.getInstance ().parseCommandLine (args);
 
+		FacesConfiguration.configure ();
 		FacesLogging.configure ();
 
 		facesLoggerWrapper.info ("Configuration environment: " + CommandLine.getInstance ().configEnvName);
-
-		FacesConfiguration.configure ();
 
 		FacesModules.getInstance ().loadConfiguredModules ();
 		Application.launch ();
