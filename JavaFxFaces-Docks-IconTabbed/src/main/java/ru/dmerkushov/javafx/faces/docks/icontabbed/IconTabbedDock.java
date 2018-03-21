@@ -20,6 +20,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
+import javafx.scene.paint.Color;
 import ru.dmerkushov.javafx.faces.FacesDock;
 import static ru.dmerkushov.javafx.faces.FacesLogging.facesLoggerWrapper;
 import ru.dmerkushov.javafx.faces.panels.FacesPanel;
@@ -144,13 +145,15 @@ public class IconTabbedDock extends FacesDock {
 		void panelListChanged (ListChangeListener.Change<FacesPanel> c) {
 			checkOnAppThread ();
 
+			final Color iconBg = Color.WHITESMOKE;	//TODO Implement usage of the currently used stylesheet background color, or at least preferences usage
+
 			while (c.next ()) {
 				c.getAddedSubList ().stream ().filter ((p) -> (p != null)).forEachOrdered (new Consumer<FacesPanel> () {
 					@Override
 					public void accept (FacesPanel panel) {
 						getChildren ().add (panel.getView ());
 						panel.getView ().setVisible (false);
-						ImageView iconView = new ImageView (panel.getIcon (iconWidth, iconHeight));
+						ImageView iconView = new ImageView (FacesPanel.getIconOnBackgroundColor (panel.getIcon (iconWidth, iconHeight), iconBg));
 
 						icons.put (panel, iconView);
 						iconView.setOnMouseClicked ((e) -> showPanel (panel));
