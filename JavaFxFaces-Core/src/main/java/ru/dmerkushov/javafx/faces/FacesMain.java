@@ -21,7 +21,6 @@ import javafx.stage.Stage;
 import static ru.dmerkushov.javafx.faces.FacesLogging.facesLoggerWrapper;
 import ru.dmerkushov.javafx.faces.panels.FacesPanel;
 import ru.dmerkushov.javafx.faces.panels.FacesPanels;
-import ru.dmerkushov.javafx.faces.threads.FxThreadChecker;
 
 /**
  *
@@ -37,7 +36,6 @@ public class FacesMain extends Application {
 
 		facesLoggerWrapper.info ("Configuration environment: " + CommandLine.getInstance ().configEnvName);
 
-		FacesModules.getInstance ().loadConfiguredModules ();
 		Application.launch ();
 	}
 
@@ -51,34 +49,28 @@ public class FacesMain extends Application {
 		return instance;
 	}
 
-	private final FacesPanel mainPanel;
+	private FacesPanel mainPanel;
 	private Stage primaryStage;
 
-	public FacesMain () throws FacesException {
-		super ();
+	@Override
+	public void start (Stage primaryStage) throws Exception {
 		facesLoggerWrapper.entering ();
 
 		setInstance (this);
+
+		FacesModules.getInstance ().loadConfiguredModules ();
 
 		mainPanel = FacesPanels.getInstance ().getPanel (FacesConfiguration.getMainPanelUuid ());
 		if (mainPanel == null) {
 			throw new FacesException ("Could not find the main panel: a panel with UUID " + FacesConfiguration.getMainPanelUuid ());
 		}
 
-		facesLoggerWrapper.exiting ();
-	}
-
-	@Override
-	public void start (Stage primaryStage) throws Exception {
-		facesLoggerWrapper.entering ();
-
-		FxThreadChecker.setAppThread ();
-
 		this.primaryStage = primaryStage;
 
 		Scene mainScene = new Scene (mainPanel.getView ());
 		primaryStage.setScene (mainScene);
 		primaryStage.setTitle (mainPanel.getDisplayName ());
+
 		primaryStage.show ();
 
 		facesLoggerWrapper.exiting ();

@@ -20,6 +20,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import javafx.scene.image.Image;
+import javafx.scene.image.PixelReader;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.image.WritableImage;
+import javafx.scene.paint.Color;
 
 /**
  *
@@ -41,13 +45,40 @@ public abstract class FacesPanel {
 	}
 
 	public final Image getIcon (Dimension d) {
-		Image icon = null;
+		Image resultIcon = null;
 		synchronized (iconsLock) {
-			if (icons.containsKey (d)) {
-				icon = icons.get (d);
-			} else {
-				icon = prepareIcon (d.width, d.height);
-				icons.put (d, icon);
+			if (!icons.containsKey (d)) {
+				Image appIcon = prepareIcon (d.width, d.height);
+				PixelReader appIconR = appIcon.getPixelReader ();
+
+				icons.put (d, appIcon);
+			}
+			resultIcon = icons.get (d);
+		}
+
+		return resultIcon;
+	}
+
+	public static final Image getIconOnBackgroundColor (Image srcIcon, Color bgColor) {
+		int width = (int) srcIcon.getWidth ();
+		int height = (int) srcIcon.getHeight ();
+		PixelReader srcIconR = srcIcon.getPixelReader ();
+
+		WritableImage icon = new WritableImage (width, height);
+		PixelWriter iconW = icon.getPixelWriter ();
+		for (int x = 0; x < width; x++) {
+			for (int y = 0; y < height; y++) {
+				Color pixel;
+				try {
+					pixel = srcIconR.getColor (x, y);
+				} catch (IndexOutOfBoundsException ex) {
+					pixel = bgColor;
+				}
+				if (pixel.getOpacity () < 0.1) {
+					iconW.setColor (x, y, bgColor);
+				} else {
+					iconW.setColor (x, y, pixel);
+				}
 			}
 		}
 
