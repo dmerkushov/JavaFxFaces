@@ -20,7 +20,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
-import javafx.scene.paint.Color;
+import javafx.scene.layout.Pane;
 import ru.dmerkushov.javafx.faces.FacesDock;
 import static ru.dmerkushov.javafx.faces.FacesLogging.facesLoggerWrapper;
 import ru.dmerkushov.javafx.faces.panels.FacesPanel;
@@ -136,7 +136,7 @@ public class IconTabbedDock extends FacesDock {
 
 	public class IconTabbedDockView extends FacesPanelView {
 
-		Map<FacesPanel, ImageView> icons = new HashMap<> ();
+		Map<FacesPanel, Pane> icons = new HashMap<> ();
 
 		public IconTabbedDockView () {
 			super (IconTabbedDock.this);
@@ -145,23 +145,22 @@ public class IconTabbedDock extends FacesDock {
 		void panelListChanged (ListChangeListener.Change<FacesPanel> c) {
 			checkOnAppThread ();
 
-			final Color iconBg = Color.WHITESMOKE;	//TODO Implement usage of the currently used stylesheet background color, or at least preferences usage
-
 			while (c.next ()) {
 				c.getAddedSubList ().stream ().filter ((p) -> (p != null)).forEachOrdered (new Consumer<FacesPanel> () {
 					@Override
 					public void accept (FacesPanel panel) {
 						getChildren ().add (panel.getView ());
 						panel.getView ().setVisible (false);
-						ImageView iconView = new ImageView (FacesPanel.getIconOnBackgroundColor (panel.getIcon (iconWidth, iconHeight), iconBg));
+						ImageView iconView = new ImageView (panel.getIcon (iconWidth, iconHeight));
+						Pane iconPane = new Pane (iconView);
 
-						icons.put (panel, iconView);
-						iconView.setOnMouseClicked ((e) -> showPanel (panel));
+						icons.put (panel, iconPane);
+						iconPane.setOnMouseClicked ((e) -> showPanel (panel));
 
 						Tooltip tooltip = new Tooltip (panel.getDisplayName () + "\n\n" + panel.getToolTip ());
-						Tooltip.install (iconView, tooltip);
+						Tooltip.install (iconPane, tooltip);
 
-						getChildren ().add (iconView);
+						getChildren ().add (iconPane);
 
 						facesLoggerWrapper.finest ("Added panel " + panel + ", iconView " + iconView);
 					}
@@ -191,10 +190,10 @@ public class IconTabbedDock extends FacesDock {
 				if (panel == null) {
 					continue;
 				}
-				ImageView iconView = icons.get (panel);
+				Pane iconPane = icons.get (panel);
 
-				iconView.layoutXProperty ().set (5.0);
-				iconView.layoutYProperty ().set (iconIndex * (iconHeight + 5.0));
+				iconPane.layoutXProperty ().set (5.0);
+				iconPane.layoutYProperty ().set (iconIndex * (iconHeight + 5.0));
 
 				FacesPanelView panelView = panel.getView ();
 				panelView.layoutXProperty ().set (iconWidth + 10.0);
