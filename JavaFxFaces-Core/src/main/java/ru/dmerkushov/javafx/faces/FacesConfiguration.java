@@ -29,17 +29,19 @@ import ru.dmerkushov.prefconf.PrefConf;
  */
 public class FacesConfiguration {
 
-	private static Preferences prefs = Preferences.userNodeForPackage (FacesConfiguration.class);
+	private static Preferences userPrefs = Preferences.userNodeForPackage (FacesConfiguration.class);
+	private static Preferences systemPrefs = Preferences.systemNodeForPackage (FacesConfiguration.class);
 
 	static void configure () throws FacesException {
-		prefs = PrefConf.getInstance ().getUserConfigurationForEnvironment (FacesConfiguration.class.getPackage (), CommandLine.getInstance ().configEnvName);
+		userPrefs = PrefConf.getInstance ().getUserConfigurationForEnvironment (FacesConfiguration.class.getPackage (), CommandLine.getInstance ().configEnvName);
+		systemPrefs = PrefConf.getInstance ().getSystemConfigurationForEnvironment (FacesConfiguration.class.getPackage (), CommandLine.getInstance ().configEnvName);
 	}
 
 	private static UUID mainPanelUuid;
 
 	public static synchronized UUID getMainPanelUuid () {
 		if (mainPanelUuid == null) {
-			mainPanelUuid = UUID.fromString (FacesConfiguration.prefs.get ("mainPanelUuid", "8e2bf236-81d5-4f6e-813d-6118b5467bbf"));
+			mainPanelUuid = UUID.fromString (FacesConfiguration.systemPrefs.get ("mainPanelUuid", "8e2bf236-81d5-4f6e-813d-6118b5467bbf"));
 		}
 		return mainPanelUuid;
 	}
@@ -48,14 +50,18 @@ public class FacesConfiguration {
 
 	public static synchronized List<String> getModuleClassList () {
 		if (moduleClassList == null) {
-			String moduleListStr = FacesConfiguration.prefs.get ("moduleList", DummyModule.class.getCanonicalName ());
+			String moduleListStr = FacesConfiguration.systemPrefs.get ("moduleList", DummyModule.class.getCanonicalName ());
 			moduleClassList = Arrays.asList (moduleListStr.split (" "));
 		}
 		return moduleClassList;
 	}
 
-	public static synchronized Preferences getPrefsForModule (Class<? extends FacesModule> moduleClass) {
-		return prefs.node ("modules/" + moduleClass.getCanonicalName ().replaceAll ("\\.", "/"));
+	public static synchronized Preferences getUserPrefsForModule (Class<? extends FacesModule> moduleClass) {
+		return userPrefs.node ("modules/" + moduleClass.getCanonicalName ().replaceAll ("\\.", "/"));
+	}
+
+	public static synchronized Preferences getSystemPrefsForModule (Class<? extends FacesModule> moduleClass) {
+		return systemPrefs.node ("modules/" + moduleClass.getCanonicalName ().replaceAll ("\\.", "/"));
 	}
 
 	private static Level loggingLevel;
@@ -63,7 +69,7 @@ public class FacesConfiguration {
 	public static synchronized Level getLoggingLevel () {
 		if (loggingLevel == null) {
 			try {
-				loggingLevel = Level.parse (FacesConfiguration.prefs.get ("loggingLevel", "FINE"));
+				loggingLevel = Level.parse (FacesConfiguration.systemPrefs.get ("loggingLevel", "FINE"));
 			} catch (IllegalArgumentException | NullPointerException ex) {
 				loggingLevel = Level.FINE;
 			}

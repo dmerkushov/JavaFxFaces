@@ -23,8 +23,8 @@ import ru.dmerkushov.javafx.faces.panels.FacesPanels;
  */
 public class TestTableDockModule extends FacesModule {
 
-	public TestTableDockModule (Preferences modulePrefs) {
-		super (modulePrefs);
+	public TestTableDockModule (Preferences userModulePrefs, Preferences systemModulePrefs) {
+		super (userModulePrefs, systemModulePrefs);
 	}
 
 	TestDocksPanel panel;

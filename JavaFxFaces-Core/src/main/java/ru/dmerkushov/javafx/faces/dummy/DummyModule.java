@@ -24,12 +24,12 @@ public class DummyModule extends FacesModule {
 	DummyPanel dummyPanel = new DummyPanel ();
 	Preferences modulePrefs;
 
-	public DummyModule (Preferences modulePrefs) throws FacesException {
-		super (modulePrefs);
+	public DummyModule (Preferences userModulePrefs, Preferences systemModulePrefs) throws FacesException {
+		super (userModulePrefs, systemModulePrefs);
 
 		panels.add (dummyPanel);
 		panels.add (new DummyDock (dummyPanel));
-		this.modulePrefs = modulePrefs;
+		this.modulePrefs = userModulePrefs;
 	}
 
 	@Override

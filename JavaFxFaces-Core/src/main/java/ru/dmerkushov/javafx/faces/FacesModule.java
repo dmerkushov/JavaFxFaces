@@ -25,12 +25,15 @@ import java.util.prefs.Preferences;
  */
 public abstract class FacesModule {
 
-	protected Preferences modulePreferences;
+	protected Preferences userModulePreferences;
+	protected Preferences systemModulePreferences;
 
-	public FacesModule (Preferences modulePreferences) {
-		Objects.requireNonNull (modulePreferences, "modulePreferences");
+	public FacesModule (Preferences userModulePreferences, Preferences systemModulePreferences) {
+		Objects.requireNonNull (userModulePreferences, "userModulePreferences");
+		Objects.requireNonNull (systemModulePreferences, "systemModulePreferences");
 
-		this.modulePreferences = modulePreferences;
+		this.userModulePreferences = userModulePreferences;
+		this.systemModulePreferences = systemModulePreferences;
 	}
 
 	public abstract void initAfterDependenciesLoaded () throws FacesException;

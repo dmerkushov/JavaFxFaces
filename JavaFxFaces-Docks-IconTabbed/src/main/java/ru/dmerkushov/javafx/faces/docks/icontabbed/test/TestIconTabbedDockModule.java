@@ -21,8 +21,8 @@ import ru.dmerkushov.javafx.faces.panels.FacesPanels;
  */
 public class TestIconTabbedDockModule extends FacesModule {
 
-	public TestIconTabbedDockModule (Preferences modulePrefs) {
-		super (modulePrefs);
+	public TestIconTabbedDockModule (Preferences userModulePrefs, Preferences systemModulePrefs) {
+		super (userModulePrefs, systemModulePrefs);
 	}
 
 	TestDocksPanel panel1;

@@ -116,7 +116,7 @@ public class FacesModules {
 
 			Constructor<? extends FacesModule> moduleClassConstructor;
 			try {
-				moduleClassConstructor = moduleClass.getConstructor (Preferences.class);
+				moduleClassConstructor = moduleClass.getConstructor (Preferences.class, Preferences.class);
 			} catch (NoSuchMethodException ex) {
 				throw new FacesException ("No public constructor with a single Preferences parameter found for module class " + moduleClass.getCanonicalName (), ex);
 			} catch (SecurityException ex) {
@@ -124,7 +124,7 @@ public class FacesModules {
 			}
 
 			try {
-				module = moduleClassConstructor.newInstance (FacesConfiguration.getPrefsForModule (moduleClass));
+				module = moduleClassConstructor.newInstance (FacesConfiguration.getUserPrefsForModule (moduleClass), FacesConfiguration.getSystemPrefsForModule (moduleClass));
 			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
 				throw new FacesException ("When creating an instance of module " + moduleClass.getCanonicalName (), ex);
 			}
