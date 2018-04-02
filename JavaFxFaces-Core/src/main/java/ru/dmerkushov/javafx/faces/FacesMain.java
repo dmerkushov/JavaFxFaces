@@ -51,6 +51,7 @@ public class FacesMain extends Application {
 
 	private FacesPanel mainPanel;
 	private Stage primaryStage;
+	private Scene mainScene;
 
 	@Override
 	public void start (Stage primaryStage) throws Exception {
@@ -67,9 +68,11 @@ public class FacesMain extends Application {
 
 		this.primaryStage = primaryStage;
 
-		Scene mainScene = new Scene (mainPanel.getView ());
+		this.mainScene = new Scene (mainPanel.getView ());
 		primaryStage.setScene (mainScene);
 		primaryStage.setTitle (mainPanel.getDisplayName ());
+
+		FacesUtil.bindWidthHeight (mainPanel.getView (), mainScene.widthProperty (), mainScene.heightProperty ());
 
 		primaryStage.show ();
 
@@ -92,6 +95,10 @@ public class FacesMain extends Application {
 
 	public Stage getPrimaryStage () {
 		return primaryStage;
+	}
+
+	public Scene getMainScene () {
+		return mainScene;
 	}
 
 }
