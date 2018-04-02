@@ -10,6 +10,7 @@
 		<module>JavaFxFaces-Docks-General</module>
 		<module>JavaFxFaces-Docks-IconTabbed</module>
 		<module>JavaFxFaces-Docks-Table</module>
+		<module>JavaFxFaces-Docks-Wizard</module>
 	</modules>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
