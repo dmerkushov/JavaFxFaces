@@ -15,12 +15,17 @@
  */
 package ru.dmerkushov.javafx.faces;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import static ru.dmerkushov.javafx.faces.FacesLogging.facesLoggerWrapper;
 import ru.dmerkushov.javafx.faces.panels.FacesPanel;
 import ru.dmerkushov.javafx.faces.panels.FacesPanels;
+import ru.dmerkushov.javafx.faces.threads.FxThreadChecker;
+import ru.dmerkushov.javafx.faces.threads.FxThreadCheckerException;
 
 /**
  *
@@ -74,9 +79,47 @@ public class FacesMain extends Application {
 
 		FacesUtil.bindWidthHeight (mainPanel.getView (), mainScene.widthProperty (), mainScene.heightProperty ());
 
+		listRunBeforePrimaryStageShow.forEach ((r) -> {
+			r.run ();
+		});
+
 		primaryStage.show ();
 
 		facesLoggerWrapper.exiting ();
+	}
+
+	List<Runnable> listRunBeforePrimaryStageShow = new LinkedList<> ();
+
+	/**
+	 * Set a {@link Runnable} to run just before showing the primary stage. The
+	 * runnable will be put on a list for execution. All runnables on that list
+	 * are executed with the following conditions all true by the time of
+	 * execution:
+	 * <ul>
+	 * <li>Every Runnable on the list is executed once, one after another, in
+	 * the list order, on the JavaFX application thread</li>
+	 * <li>The configured modules are all loaded</li>
+	 * <li>The main scene is initialized</li>
+	 * <li>The main panel is initialized, its size bound to the size of the main
+	 * scene</li>
+	 * <li>The primary stage is initialized, but not yet shown</li>
+	 * </ul>
+	 *
+	 * This is especially useful for initialization code depending on the
+	 * existence of the main panel and/or the primary stage.
+	 *
+	 * This method must be run on the JavaFX application thread.
+	 *
+	 * @param runnable must not be null
+	 * @throws NullPointerException if runnable is null
+	 * @throws FxThreadCheckerException if executed not on the application
+	 * thread
+	 */
+	public void doBeforePrimaryStageShow (Runnable runnable) {
+		Objects.requireNonNull (runnable, "runnable");
+		FxThreadChecker.checkOnAppThread ();
+
+		listRunBeforePrimaryStageShow.add (runnable);
 	}
 
 	@Override
