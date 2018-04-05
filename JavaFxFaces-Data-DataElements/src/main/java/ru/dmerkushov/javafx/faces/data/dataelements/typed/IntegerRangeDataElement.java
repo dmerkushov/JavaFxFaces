@@ -1,4 +1,4 @@
-package ru.dmerkushov.javafx.faces.data.dataelements;
+package ru.dmerkushov.javafx.faces.data.dataelements.typed;
 
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -7,6 +7,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
 import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
 import ru.dmerkushov.javafx.faces.data.range.IntegerRange;
 

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ru.dmerkushov.javafx.faces.data.dataelements;
+package ru.dmerkushov.javafx.faces.data.dataelements.typed;
 
 import java.time.Duration;
 import javafx.beans.property.ObjectPropertyBase;
@@ -13,6 +13,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
 import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
 
 /**

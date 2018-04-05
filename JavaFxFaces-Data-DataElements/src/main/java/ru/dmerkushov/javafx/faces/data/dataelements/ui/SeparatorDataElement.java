@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ru.dmerkushov.javafx.faces.data.dataelements;
+package ru.dmerkushov.javafx.faces.data.dataelements.ui;
 
 import javafx.scene.Node;
 import javafx.scene.control.Separator;

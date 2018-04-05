@@ -3,17 +3,20 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ru.dmerkushov.javafx.faces.data.dataelements;
+package ru.dmerkushov.javafx.faces.data.dataelements.typed;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
+import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
+import ru.dmerkushov.javafx.faces.data.dataelements.DataElementException;
 import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
 
 /**
  *
  * @author Dmitriy Merkushov (d.merkushov at gmail.com)
+ * @param <T>
  */
 public class EnumDataElement<T> extends DataElement<T> {
 
