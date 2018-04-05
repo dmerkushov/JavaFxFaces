@@ -11,6 +11,7 @@
 		<module>JavaFxFaces-Docks-IconTabbed</module>
 		<module>JavaFxFaces-Docks-Table</module>
 		<module>JavaFxFaces-Docks-Wizard</module>
+		<module>JavaFxFaces-Data-DataElements</module>
 	</modules>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -22,5 +23,6 @@
 		<prefconf.version>0.2</prefconf.version>
 		<args4j.version>2.33</args4j.version>
 		<log-helper.version>2.1.0-SNAPSHOT</log-helper.version>
+		<javax-json.version>1.0.4</javax-json.version>
 	</properties>
 </project>
