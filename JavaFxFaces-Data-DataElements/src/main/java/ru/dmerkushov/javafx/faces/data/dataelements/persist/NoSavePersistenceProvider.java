@@ -13,26 +13,18 @@ import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
  */
 public class NoSavePersistenceProvider implements DataElementPersistenceProvider {
 
-	public final DataElement dataElement;
-
-	public NoSavePersistenceProvider (DataElement dataElement) {
-		this.dataElement = dataElement;
+	public NoSavePersistenceProvider () {
 	}
 
 	@Override
-	public String load () {
+	public String load (DataElement dataElement) {
 		// Insert the default value
 		return dataElement.valueToStoredString (dataElement.defaultValue);
 	}
 
 	@Override
-	public void save () {
+	public void save (DataElement dataElement) {
 		// Do nothing
-	}
-
-	@Override
-	public DataElement getDataElement () {
-		return dataElement;
 	}
 
 }

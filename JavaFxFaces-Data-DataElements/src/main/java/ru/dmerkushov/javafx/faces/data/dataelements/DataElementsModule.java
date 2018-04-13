@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.prefs.Preferences;
 import ru.dmerkushov.javafx.faces.FacesException;
 import ru.dmerkushov.javafx.faces.FacesModule;
-import ru.dmerkushov.javafx.faces.data.dataelements.registry.DataElementRegistry;
 
 /**
  *
@@ -24,6 +23,7 @@ public class DataElementsModule extends FacesModule {
 
 	@Override
 	public void initAfterDependenciesLoaded () throws FacesException {
+		// Do nothing
 	}
 
 	@Override
@@ -33,7 +33,7 @@ public class DataElementsModule extends FacesModule {
 
 	@Override
 	public void finish () throws FacesException {
-		DataElementRegistry.getInstance ().save ();
+		// Do nothing, even don't save, since this is the responsibility of the module that uses the data elements
 	}
 
 }

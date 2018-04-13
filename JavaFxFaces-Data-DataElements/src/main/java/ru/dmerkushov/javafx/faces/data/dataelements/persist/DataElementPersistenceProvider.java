@@ -13,10 +13,8 @@ import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
  */
 public interface DataElementPersistenceProvider {
 
-	public String load ();
+	public String load (DataElement dataElement);
 
-	public void save ();
-
-	public DataElement getDataElement ();
+	public void save (DataElement dataElement);
 
 }
