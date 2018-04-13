@@ -13,8 +13,44 @@ import ru.dmerkushov.javafx.faces.data.range.IntegerRange;
 
 public class IntegerRangeDataElement extends DataElement<IntegerRange> {
 
+	IntegerProperty minValueProperty;
+	IntegerProperty maxValueProperty;
+	IntegerProperty worstValueProperty;
+	IntegerProperty bestValueProperty;
+
 	public IntegerRangeDataElement (String elementTitle, String elementId, IntegerRange defaultValue, DataElementPersistenceProvider persistenceProvider) {
 		super (elementTitle, elementId, IntegerRange.class, defaultValue, persistenceProvider);
+
+		minValueProperty = new SimpleIntegerProperty (getCurrentValueProperty ().get ().getMin ());
+		maxValueProperty = new SimpleIntegerProperty (getCurrentValueProperty ().get ().getMax ());
+		getCurrentValueProperty ().addListener ((ObservableValue<? extends IntegerRange> observable, IntegerRange oldValue, IntegerRange newValue) -> {
+			if (newValue.getMin () != minValueProperty.get ()) {
+				minValueProperty.set (newValue.getMin ());
+			}
+			if (newValue.getMax () != maxValueProperty.get ()) {
+				maxValueProperty.set (newValue.getMax ());
+			}
+		});
+		minValueProperty.addListener ((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+			IntegerRange currentVal = getCurrentValueProperty ().get ();
+			int currentMax = currentVal.getMax ();
+			IntegerRange newVal = new IntegerRange ((Integer) newValue, currentMax, currentVal.minIsBest);
+			getCurrentValueProperty ().set (newVal);
+		});
+		maxValueProperty.addListener ((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+			IntegerRange currentVal = getCurrentValueProperty ().get ();
+			int currentMin = currentVal.getMin ();
+			IntegerRange newVal = new IntegerRange ((Integer) newValue, currentMin, currentVal.minIsBest);
+			getCurrentValueProperty ().set (newVal);
+		});
+
+		if (defaultValue.minIsBest) {
+			bestValueProperty = minValueProperty;
+			worstValueProperty = maxValueProperty;
+		} else {
+			bestValueProperty = maxValueProperty;
+			worstValueProperty = minValueProperty;
+		}
 	}
 
 	@Override
@@ -31,18 +67,11 @@ public class IntegerRangeDataElement extends DataElement<IntegerRange> {
 	@Override
 	public Node getValueFxNode () {
 		if (valueFxNode == null) {
-			IntegerProperty minValueProperty = new SimpleIntegerProperty (getCurrentValueProperty ().get ().getMin ());
 			TextField minField = new TextField ();
-			getCurrentValueProperty ().addListener ((ObservableValue<? extends IntegerRange> observable, IntegerRange oldValue, IntegerRange newValue) -> {
-				if (newValue.getMin () != minValueProperty.get ()) {
-					minValueProperty.set (newValue.getMin ());
-				}
-			});
 			minValueProperty.addListener ((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
 				IntegerRange currentVal = getCurrentValueProperty ().get ();
 				int currentMax = currentVal.getMax ();
 				IntegerRange newVal = new IntegerRange ((Integer) newValue, currentMax, currentVal.minIsBest);
-				getCurrentValueProperty ().set (newVal);
 				minField.textProperty ().set (newVal.getMin ().toString ());
 			});
 			minField.textProperty ().addListener ((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
@@ -59,17 +88,10 @@ public class IntegerRangeDataElement extends DataElement<IntegerRange> {
 			});
 
 			TextField maxField = new TextField ();
-			IntegerProperty maxValueProperty = new SimpleIntegerProperty (getCurrentValueProperty ().get ().getMax ());
-			getCurrentValueProperty ().addListener ((ObservableValue<? extends IntegerRange> observable, IntegerRange oldValue, IntegerRange newValue) -> {
-				if (newValue.getMax () != maxValueProperty.get ()) {
-					maxValueProperty.set (newValue.getMax ());
-				}
-			});
 			maxValueProperty.addListener ((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
 				IntegerRange currentVal = getCurrentValueProperty ().get ();
 				int currentMin = currentVal.getMin ();
 				IntegerRange newVal = new IntegerRange ((Integer) newValue, currentMin, currentVal.minIsBest);
-				getCurrentValueProperty ().set (newVal);
 				maxField.textProperty ().set (newVal.getMax ().toString ());
 			});
 			maxField.textProperty ().addListener ((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
@@ -95,5 +117,21 @@ public class IntegerRangeDataElement extends DataElement<IntegerRange> {
 			valueFxNode = hb;
 		}
 		return valueFxNode;
+	}
+
+	public IntegerProperty getMinValueProperty () {
+		return minValueProperty;
+	}
+
+	public IntegerProperty getMaxValueProperty () {
+		return maxValueProperty;
+	}
+
+	public IntegerProperty getWorstValueProperty () {
+		return worstValueProperty;
+	}
+
+	public IntegerProperty getBestValueProperty () {
+		return bestValueProperty;
 	}
 }
