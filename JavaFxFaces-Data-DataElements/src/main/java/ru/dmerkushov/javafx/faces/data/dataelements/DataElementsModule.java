@@ -46,7 +46,6 @@ public class DataElementsModule extends FacesModule {
 		DataElementUniversalSerializer.getInstance ().registerSerializer (StringDataElement.class, new StringDataElement.JsonSerializer ());
 
 		//EnumDataElement.JsonSerializer won't be registered here, since the final class of the data element is not known at this phase.
-		//EnumDataElement.JsonSerializer is registered in the constructor of the EnumDataElement
 	}
 
 	@Override
