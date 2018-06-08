@@ -48,7 +48,7 @@ public abstract class DataElement<T> {
 	private DataElementPersistenceProvider persistenceProvider;
 
 	protected Node valueFxNode;
-	protected Node nameFxNode;
+	protected Node titleFxNode;
 
 	protected ObjectProperty<T> currentValueProperty;
 	protected ObjectProperty<String> currentValueStoredStringProperty;
@@ -184,16 +184,16 @@ public abstract class DataElement<T> {
 	}
 
 	/**
-	 * Get the JavaFX node used to show the name of this data element
+	 * Get the JavaFX node used to show the title of this data element
 	 *
 	 * @return
 	 */
-	public Node getNameFxNode () {
-		if (nameFxNode == null) {
+	public Node getTitleFxNode () {
+		if (titleFxNode == null) {
 			Label label = new Label (elementTitle);
-			nameFxNode = label;
+			titleFxNode = label;
 		}
-		return nameFxNode;
+		return titleFxNode;
 	}
 
 	public DataElementPersistenceProvider getPersistenceProvider () {

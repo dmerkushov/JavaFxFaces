@@ -6,10 +6,8 @@
 package ru.dmerkushov.javafx.faces.data.dataelements.registry;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -46,10 +44,10 @@ public class DataElementRegistry {
 	////////////////////////////////////////////////////////////////////////////
 
 	private final Map<String, DataElement> dataElements = new HashMap<> ();
-	private final Map<UUID, List<DataElement>> pageDataElements = new HashMap<> ();
-	private final Map<DataElement, List<UUID>> dataElementPages = new HashMap<> ();
+	private final Map<UUID, ArrayList<DataElement>> pageDataElements = new HashMap<> ();
+	private final Map<DataElement, UUID> dataElementPages = new HashMap<> ();
 
-	public void registerDataElement (DataElement dataElement, UUID... panelUuids) {
+	public void registerDataElement (DataElement dataElement, UUID panelUuid) {
 		Objects.requireNonNull (dataElement, "dataElement");
 
 		synchronized (dataElements) {
@@ -63,22 +61,27 @@ public class DataElementRegistry {
 			}
 			dataElements.put (dataElement.elementId, dataElement);
 
-			if (panelUuids == null) {
-				dataElementPages.put (dataElement, new ArrayList<> (0));
-			} else {
-				dataElementPages.put (dataElement, Arrays.asList (panelUuids));
-				for (UUID panel : panelUuids) {
-					if (!pageDataElements.containsKey (panel)) {
-						pageDataElements.put (panel, new ArrayList<> ());
-					}
-					pageDataElements.get (panel).add (dataElement);
+			dataElementPages.put (dataElement, panelUuid);
+
+			if (panelUuid != null) {
+				if (!pageDataElements.containsKey (panelUuid)) {
+					pageDataElements.put (panelUuid, new ArrayList<> ());
 				}
+				pageDataElements.get (panelUuid).add (dataElement);
 			}
 		}
 	}
 
-	public List<DataElement> getDataElementsForPage (DataElementPagePanel panel) {
-		return pageDataElements.get (panel.getPanelInstanceUuid ());
+	public ArrayList<DataElement> getDataElementsForPage (DataElementPagePanel panel) {
+		Objects.requireNonNull (panel, "panel");
+
+		return getDataElementsForPage (panel.getPanelInstanceUuid ());
+	}
+
+	public ArrayList<DataElement> getDataElementsForPage (UUID panelUuid) {
+		Objects.requireNonNull (panelUuid, "panelUuid");
+
+		return pageDataElements.get (panelUuid);
 	}
 
 	public DataElement getDataElement (String elementId) {

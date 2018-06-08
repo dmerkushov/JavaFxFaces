@@ -46,7 +46,7 @@ public class DataElementPagePanelView extends FacesPanelView {
 		for (int i = 0; i < dataElements.size (); i++) {
 			DataElement dataElement = dataElements.get (i);
 
-			grid.add (dataElement.getNameFxNode (), 0, i);
+			grid.add (dataElement.getTitleFxNode (), 0, i);
 			grid.add (dataElement.getValueFxNode (), 1, i);
 		}
 
