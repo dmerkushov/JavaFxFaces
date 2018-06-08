@@ -15,4 +15,9 @@ public class IntegerRange extends Range<Integer> {
 		super (first, second, minIsBest);
 	}
 
+	@Override
+	public String toString () {
+		return "IntegerRange {" + first + "," + second + ",minIsBest:" + minIsBest + "}";
+	}
+
 }

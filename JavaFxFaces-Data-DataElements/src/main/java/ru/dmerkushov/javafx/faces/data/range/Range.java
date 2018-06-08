@@ -54,4 +54,37 @@ public class Range<T extends Number> {
 		return (v >= getMin ().doubleValue () && v <= getMax ().doubleValue ());
 	}
 
+	@Override
+	public int hashCode () {
+		int hash = 3;
+		hash = 17 * hash + Objects.hashCode (this.getMin ());
+		hash = 17 * hash + Objects.hashCode (this.getMax ());
+		hash = 17 * hash + (this.minIsBest ? 1 : 0);
+		return hash;
+	}
+
+	@Override
+	public boolean equals (Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass () != obj.getClass ()) {
+			return false;
+		}
+		final Range<?> other = (Range<?>) obj;
+		if (this.minIsBest != other.minIsBest) {
+			return false;
+		}
+		if (!Objects.equals (this.getMin (), other.getMin ())) {
+			return false;
+		}
+		if (!Objects.equals (this.getMax (), other.getMax ())) {
+			return false;
+		}
+		return true;
+	}
+
 }

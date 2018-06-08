@@ -20,11 +20,11 @@ import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersisten
  */
 public class EnumDataElement<T> extends DataElement<T> {
 
-	public EnumDataElement (String elementTitle, String elementId, Class<T> elementType, T defaultValue, DataElementPersistenceProvider persistenceProvider) {
-		super (elementTitle, elementId, elementType, defaultValue, persistenceProvider);
+	public EnumDataElement (String elementTitle, String elementId, Class<T> valueType, T defaultValue, DataElementPersistenceProvider persistenceProvider) {
+		super (elementTitle, elementId, valueType, defaultValue, persistenceProvider);
 
-		if (!elementType.isEnum ()) {
-			throw new IllegalArgumentException ("EnumDataElement can wrap only an enum class. The supplied class is not declared as an enum: " + elementType.getCanonicalName ());
+		if (!valueType.isEnum ()) {
+			throw new IllegalArgumentException ("EnumDataElement can wrap only an enum class. The supplied class is not declared as an enum: " + valueType.getCanonicalName ());
 		}
 	}
 
@@ -35,7 +35,7 @@ public class EnumDataElement<T> extends DataElement<T> {
 		}
 
 		try {
-			Method nameMethod = elementType.getMethod ("name");
+			Method nameMethod = valueType.getMethod ("name");
 			return (String) nameMethod.invoke (val);
 		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | RuntimeException ex) {
 			throw new DataElementException (ex);
@@ -49,7 +49,7 @@ public class EnumDataElement<T> extends DataElement<T> {
 		}
 
 		try {
-			return (T) Enum.valueOf (elementType, str);
+			return (T) Enum.valueOf (valueType, str);
 		} catch (RuntimeException ex) {
 			throw new DataElementException (ex);
 		}
@@ -57,7 +57,7 @@ public class EnumDataElement<T> extends DataElement<T> {
 
 	public T[] values () {
 		try {
-			Method valuesMethod = elementType.getMethod ("values");
+			Method valuesMethod = valueType.getMethod ("values");
 			return (T[]) valuesMethod.invoke (null);
 		} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | RuntimeException ex) {
 			throw new DataElementException (ex);

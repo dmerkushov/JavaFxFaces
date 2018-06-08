@@ -35,7 +35,7 @@ public abstract class DataElement<T> {
 	/**
 	 * The type of data for the data element
 	 */
-	public final Class elementType;
+	public final Class valueType;
 
 	/**
 	 * The default value for the data element
@@ -46,6 +46,7 @@ public abstract class DataElement<T> {
 	 * Persistence provider for the data element
 	 */
 	private DataElementPersistenceProvider persistenceProvider;
+
 	protected Node valueFxNode;
 	protected Node nameFxNode;
 
@@ -57,18 +58,18 @@ public abstract class DataElement<T> {
 	 *
 	 * @param elementTitle
 	 * @param elementId
-	 * @param elementType
+	 * @param valueType
 	 * @param defaultValue
 	 * @param persistenceProvider may be null
 	 */
-	public DataElement (String elementTitle, String elementId, Class<T> elementType, T defaultValue, DataElementPersistenceProvider persistenceProvider) {
+	public DataElement (String elementTitle, String elementId, Class<T> valueType, T defaultValue, DataElementPersistenceProvider persistenceProvider) {
 		Objects.requireNonNull (elementTitle, "elementTitle");
 		Objects.requireNonNull (elementId, "elementId");
-		Objects.requireNonNull (elementType, "elementType");
+		Objects.requireNonNull (valueType, "valueType");
 
 		this.elementTitle = elementTitle;
 		this.elementId = elementId;
-		this.elementType = elementType;
+		this.valueType = valueType;
 		this.defaultValue = defaultValue;
 		this.persistenceProvider = persistenceProvider;
 
@@ -102,7 +103,8 @@ public abstract class DataElement<T> {
 	}
 
 	/**
-	 * Prepare this data element value for saving with the persistence provider
+	 * Prepare this data element value for saving with the persistence provider.
+	 * Must be currentState-independent
 	 *
 	 * @param val
 	 * @return
@@ -111,7 +113,7 @@ public abstract class DataElement<T> {
 
 	/**
 	 * Read this data element's value from the format of the persistence
-	 * provider
+	 * provider. Must be current
 	 *
 	 * @param str
 	 * @return

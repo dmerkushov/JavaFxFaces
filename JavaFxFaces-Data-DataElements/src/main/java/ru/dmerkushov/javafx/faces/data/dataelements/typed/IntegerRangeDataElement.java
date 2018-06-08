@@ -8,6 +8,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
+import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializerImpl;
 import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
 import ru.dmerkushov.javafx.faces.data.range.IntegerRange;
 
@@ -19,7 +20,13 @@ public class IntegerRangeDataElement extends DataElement<IntegerRange> {
 	IntegerProperty bestValueProperty;
 
 	public IntegerRangeDataElement (String elementTitle, String elementId, IntegerRange defaultValue, DataElementPersistenceProvider persistenceProvider) {
-		super (elementTitle, elementId, IntegerRange.class, defaultValue, persistenceProvider);
+		super (
+				elementTitle,
+				elementId,
+				IntegerRange.class,
+				(defaultValue != null ? defaultValue : new IntegerRange (0, 0, true)),
+				persistenceProvider
+		);
 
 		minValueProperty = new SimpleIntegerProperty (getCurrentValueProperty ().get ().getMin ());
 		maxValueProperty = new SimpleIntegerProperty (getCurrentValueProperty ().get ().getMax ());
@@ -44,7 +51,7 @@ public class IntegerRangeDataElement extends DataElement<IntegerRange> {
 			getCurrentValueProperty ().set (newVal);
 		});
 
-		if (defaultValue.minIsBest) {
+		if (this.defaultValue.minIsBest) {
 			bestValueProperty = minValueProperty;
 			worstValueProperty = maxValueProperty;
 		} else {
@@ -55,13 +62,21 @@ public class IntegerRangeDataElement extends DataElement<IntegerRange> {
 
 	@Override
 	public String valueToStoredString (IntegerRange val) {
-		return val.getMin () + "," + val.getMax ();
+		if (val == null) {
+			return "null";
+		}
+
+		return val.getMin () + "," + val.getMax () + "," + val.minIsBest;
 	}
 
 	@Override
 	public IntegerRange storedStringToValue (String str) {
+		if (str == null || str.equals ("null")) {
+			return defaultValue;
+		}
+
 		String[] vals = str.split (",");
-		return new IntegerRange (Integer.valueOf (vals[0]), Integer.valueOf (vals[1]), defaultValue.minIsBest);
+		return new IntegerRange (Integer.valueOf (vals[0]), Integer.valueOf (vals[1]), Boolean.valueOf (vals[2]));
 	}
 
 	@Override
@@ -133,5 +148,13 @@ public class IntegerRangeDataElement extends DataElement<IntegerRange> {
 
 	public IntegerProperty getBestValueProperty () {
 		return bestValueProperty;
+	}
+
+	public static class JsonSerializer extends DataElementJsonSerializerImpl<IntegerRangeDataElement, IntegerRange> {
+
+		public JsonSerializer () {
+			super (IntegerRangeDataElement.class, IntegerRange.class, new String[]{"elementTitle", "elementId", "defaultValue", "persistenceProvider"});
+		}
+
 	}
 }

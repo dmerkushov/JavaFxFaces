@@ -20,6 +20,7 @@ import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElementException;
+import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializerImpl;
 import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
 
 /**
@@ -28,7 +29,7 @@ import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersisten
  */
 public class DateTimeDataElement extends DataElement<LocalDateTime> {
 
-	public static final String FIELD_DELIMITER = "-";
+	public static final String FIELD_DELIMITER = "_";
 
 	public final ObjectProperty<LocalDate> currentValueLocalDateProperty = new ObjectPropertyBase<LocalDate> () {
 		@Override
@@ -128,12 +129,12 @@ public class DateTimeDataElement extends DataElement<LocalDateTime> {
 		}
 	};
 
-	public DateTimeDataElement (String elementTitle, String elementName, LocalDateTime defaultValue, DataElementPersistenceProvider persistenceProvider) {
-		super (elementTitle, elementName, LocalDateTime.class, defaultValue, persistenceProvider);
+	public DateTimeDataElement (String elementTitle, String elementId, LocalDateTime defaultValue, DataElementPersistenceProvider persistenceProvider) {
+		super (elementTitle, elementId, LocalDateTime.class, defaultValue, persistenceProvider);
 	}
 
-	public DateTimeDataElement (String elementTitle, String elementName, DataElementPersistenceProvider persistenceProvider) {
-		this (elementTitle, elementName, LocalDateTime.now (), persistenceProvider);
+	public DateTimeDataElement (String elementTitle, String elementId, DataElementPersistenceProvider persistenceProvider) {
+		this (elementTitle, elementId, LocalDateTime.now (), persistenceProvider);
 	}
 
 	@Override
@@ -245,6 +246,14 @@ public class DateTimeDataElement extends DataElement<LocalDateTime> {
 		}
 
 		return valueFxNode;
+	}
+
+	public static class JsonSerializer extends DataElementJsonSerializerImpl<DateTimeDataElement, LocalDateTime> {
+
+		public JsonSerializer () {
+			super (DateTimeDataElement.class, LocalDateTime.class, new String[]{"elementTitle", "elementId", "defaultValue", "persistenceProvider"});
+		}
+
 	}
 
 }

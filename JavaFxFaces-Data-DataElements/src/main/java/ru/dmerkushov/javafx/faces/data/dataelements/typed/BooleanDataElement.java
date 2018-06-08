@@ -8,6 +8,7 @@ package ru.dmerkushov.javafx.faces.data.dataelements.typed;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
+import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializerImpl;
 import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
 
 /**
@@ -49,4 +50,11 @@ public class BooleanDataElement extends DataElement<Boolean> {
 		return valueFxNode;
 	}
 
+	public static class JsonSerializer extends DataElementJsonSerializerImpl<BooleanDataElement, Boolean> {
+
+		public JsonSerializer () {
+			super (BooleanDataElement.class, Boolean.class, new String[]{"elementTitle", "elementId", "defaultValue", "persistenceProvider"});
+		}
+
+	}
 }

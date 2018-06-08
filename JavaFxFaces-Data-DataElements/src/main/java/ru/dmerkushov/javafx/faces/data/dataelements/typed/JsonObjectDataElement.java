@@ -10,6 +10,7 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
+import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializerImpl;
 import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
 
 /**
@@ -18,12 +19,18 @@ import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersisten
  */
 public class JsonObjectDataElement extends DataElement<JsonObject> {
 
-	public JsonObjectDataElement (String elementTitle, String elementName, JsonObject defaultValue, DataElementPersistenceProvider persistenceProvider) {
-		super (elementTitle, elementName, JsonObject.class, defaultValue, persistenceProvider);
+	public JsonObjectDataElement (String elementTitle, String elementId, JsonObject defaultValue, DataElementPersistenceProvider persistenceProvider) {
+		super (
+				elementTitle,
+				elementId,
+				JsonObject.class,
+				(defaultValue != null ? defaultValue : Json.createObjectBuilder ().build ()),
+				persistenceProvider
+		);
 	}
 
-	public JsonObjectDataElement (String elementTitle, String elementName, DataElementPersistenceProvider persistenceProvider) {
-		this (elementTitle, elementName, Json.createObjectBuilder ().build (), persistenceProvider);
+	public JsonObjectDataElement (String elementTitle, String elementId, DataElementPersistenceProvider persistenceProvider) {
+		this (elementTitle, elementId, Json.createObjectBuilder ().build (), persistenceProvider);
 	}
 
 	@Override
@@ -43,6 +50,14 @@ public class JsonObjectDataElement extends DataElement<JsonObject> {
 
 		JsonReader jr = Json.createReader (new StringReader (str));
 		return jr.readObject ();
+	}
+
+	public static class JsonSerializer extends DataElementJsonSerializerImpl<JsonObjectDataElement, JsonObject> {
+
+		public JsonSerializer () {
+			super (JsonObjectDataElement.class, JsonObject.class, new String[]{"elementTitle", "elementId", "defaultValue", "persistenceProvider"});
+		}
+
 	}
 
 }

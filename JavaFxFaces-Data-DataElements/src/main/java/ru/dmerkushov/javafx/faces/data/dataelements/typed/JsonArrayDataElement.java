@@ -10,6 +10,7 @@ import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonReader;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
+import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializerImpl;
 import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
 
 /**
@@ -18,12 +19,18 @@ import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersisten
  */
 public class JsonArrayDataElement extends DataElement<JsonArray> {
 
-	public JsonArrayDataElement (String elementTitle, String elementName, JsonArray defaultValue, DataElementPersistenceProvider persistenceProvider) {
-		super (elementTitle, elementName, JsonArray.class, defaultValue, persistenceProvider);
+	public JsonArrayDataElement (String elementTitle, String elementId, JsonArray defaultValue, DataElementPersistenceProvider persistenceProvider) {
+		super (
+				elementTitle,
+				elementId,
+				JsonArray.class,
+				(defaultValue != null ? defaultValue : Json.createArrayBuilder ().build ()),
+				persistenceProvider
+		);
 	}
 
-	public JsonArrayDataElement (String elementTitle, String elementName, DataElementPersistenceProvider persistenceProvider) {
-		this (elementTitle, elementName, Json.createArrayBuilder ().build (), persistenceProvider);
+	public JsonArrayDataElement (String elementTitle, String elementId, DataElementPersistenceProvider persistenceProvider) {
+		this (elementTitle, elementId, Json.createArrayBuilder ().build (), persistenceProvider);
 	}
 
 	@Override
@@ -43,6 +50,14 @@ public class JsonArrayDataElement extends DataElement<JsonArray> {
 
 		JsonReader jr = Json.createReader (new StringReader (str));
 		return jr.readArray ();
+	}
+
+	public static class JsonSerializer extends DataElementJsonSerializerImpl<JsonArrayDataElement, JsonArray> {
+
+		public JsonSerializer () {
+			super (JsonArrayDataElement.class, JsonArray.class, new String[]{"elementTitle", "elementId", "defaultValue", "persistenceProvider"});
+		}
+
 	}
 
 }

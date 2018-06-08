@@ -6,6 +6,7 @@
 package ru.dmerkushov.javafx.faces.data.dataelements.typed;
 
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
+import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializerImpl;
 import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
 
 /**
@@ -14,12 +15,12 @@ import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersisten
  */
 public class DoubleDataElement extends DataElement<Double> {
 
-	public DoubleDataElement (String elementTitle, String elementName, Double defaultValue, DataElementPersistenceProvider persistenceProvider) {
-		super (elementTitle, elementName, Double.class, defaultValue, persistenceProvider);
+	public DoubleDataElement (String elementTitle, String elementId, Double defaultValue, DataElementPersistenceProvider persistenceProvider) {
+		super (elementTitle, elementId, Double.class, defaultValue, persistenceProvider);
 	}
 
-	public DoubleDataElement (String elementTitle, String elementName, DataElementPersistenceProvider persistenceProvider) {
-		this (elementTitle, elementName, 0.0, persistenceProvider);
+	public DoubleDataElement (String elementTitle, String elementId, DataElementPersistenceProvider persistenceProvider) {
+		this (elementTitle, elementId, 0.0, persistenceProvider);
 	}
 
 	@Override
@@ -41,6 +42,14 @@ public class DoubleDataElement extends DataElement<Double> {
 		}
 
 		return Double.parseDouble (str);
+	}
+
+	public static class JsonSerializer extends DataElementJsonSerializerImpl<DoubleDataElement, Double> {
+
+		public JsonSerializer () {
+			super (DoubleDataElement.class, Double.class, new String[]{"elementTitle", "elementId", "defaultValue", "persistenceProvider"});
+		}
+
 	}
 
 }
