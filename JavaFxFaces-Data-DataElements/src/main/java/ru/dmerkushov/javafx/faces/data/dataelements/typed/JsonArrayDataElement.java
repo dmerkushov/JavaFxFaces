@@ -8,9 +8,11 @@ package ru.dmerkushov.javafx.faces.data.dataelements.typed;
 import java.io.StringReader;
 import javax.json.Json;
 import javax.json.JsonArray;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
-import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializerImpl;
+import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializer;
 import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
 
 /**
@@ -52,10 +54,32 @@ public class JsonArrayDataElement extends DataElement<JsonArray> {
 		return jr.readArray ();
 	}
 
-	public static class JsonSerializer extends DataElementJsonSerializerImpl<JsonArrayDataElement, JsonArray> {
+	public static class JsonSerializer implements DataElementJsonSerializer<JsonArrayDataElement> {
 
-		public JsonSerializer () {
-			super (JsonArrayDataElement.class, JsonArray.class, new String[]{"elementTitle", "elementId", "defaultValue", "persistenceProvider"});
+		@Override
+		public JsonObjectBuilder serialize (JsonArrayDataElement dataElement) {
+			JsonObjectBuilder job = Json.createObjectBuilder ();
+
+			job.add ("elementTitle", dataElement.elementTitle);
+			job.add ("elementId", dataElement.elementId);
+			job.add ("defaultValue", dataElement.defaultValue);
+			job.add ("currentValue", dataElement.currentValueProperty.get ());
+
+			return job;
+		}
+
+		@Override
+		public JsonArrayDataElement deserialize (JsonObject json, DataElementPersistenceProvider persistenceProvider) {
+			String elementTitle = json.getString ("elementTitle", "");
+			String elementId = json.getString ("elementId", "");
+			JsonArray defaultValue = json.getJsonArray ("defaultValue");
+
+			JsonArrayDataElement jade = new JsonArrayDataElement (elementTitle, elementId, defaultValue, persistenceProvider);
+
+			JsonArray currentValue = json.getJsonArray ("currentValue");
+			jade.getCurrentValueProperty ().set (currentValue);
+
+			return jade;
 		}
 
 	}

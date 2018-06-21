@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.prefs.Preferences;
 import ru.dmerkushov.javafx.faces.FacesException;
 import ru.dmerkushov.javafx.faces.FacesModule;
-import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementUniversalSerializer;
+import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializerRegistry;
 import ru.dmerkushov.javafx.faces.data.dataelements.typed.BooleanDataElement;
 import ru.dmerkushov.javafx.faces.data.dataelements.typed.DateTimeDataElement;
 import ru.dmerkushov.javafx.faces.data.dataelements.typed.DoubleDataElement;
@@ -34,16 +34,21 @@ public class DataElementsModule extends FacesModule {
 
 	@Override
 	public void initAfterDependenciesLoaded () throws FacesException {
-		DataElementUniversalSerializer.getInstance ().registerSerializer (BooleanDataElement.class, new BooleanDataElement.JsonSerializer ());
-		DataElementUniversalSerializer.getInstance ().registerSerializer (DateTimeDataElement.class, new DateTimeDataElement.JsonSerializer ());
-		DataElementUniversalSerializer.getInstance ().registerSerializer (DoubleDataElement.class, new DoubleDataElement.JsonSerializer ());
-		DataElementUniversalSerializer.getInstance ().registerSerializer (DurationDataElement.class, new DurationDataElement.JsonSerializer ());
-		DataElementUniversalSerializer.getInstance ().registerSerializer (IntegerDataElement.class, new IntegerDataElement.JsonSerializer ());
-		DataElementUniversalSerializer.getInstance ().registerSerializer (IntegerRangeDataElement.class, new IntegerRangeDataElement.JsonSerializer ());
-		DataElementUniversalSerializer.getInstance ().registerSerializer (JsonArrayDataElement.class, new JsonArrayDataElement.JsonSerializer ());
-		DataElementUniversalSerializer.getInstance ().registerSerializer (JsonObjectDataElement.class, new JsonObjectDataElement.JsonSerializer ());
-		DataElementUniversalSerializer.getInstance ().registerSerializer (LongDataElement.class, new LongDataElement.JsonSerializer ());
-		DataElementUniversalSerializer.getInstance ().registerSerializer (StringDataElement.class, new StringDataElement.JsonSerializer ());
+		DataElementJsonSerializerRegistry.getInstance ().registerSerializer (BooleanDataElement.class, new BooleanDataElement.JsonSerializer ());
+
+		DataElementJsonSerializerRegistry.getInstance ().registerSerializer (DoubleDataElement.class, new DoubleDataElement.JsonSerializer ());
+		DataElementJsonSerializerRegistry.getInstance ().registerSerializer (IntegerDataElement.class, new IntegerDataElement.JsonSerializer ());
+		DataElementJsonSerializerRegistry.getInstance ().registerSerializer (LongDataElement.class, new LongDataElement.JsonSerializer ());
+
+		DataElementJsonSerializerRegistry.getInstance ().registerSerializer (StringDataElement.class, new StringDataElement.JsonSerializer ());
+
+		DataElementJsonSerializerRegistry.getInstance ().registerSerializer (DateTimeDataElement.class, new DateTimeDataElement.JsonSerializer ());
+		DataElementJsonSerializerRegistry.getInstance ().registerSerializer (DurationDataElement.class, new DurationDataElement.JsonSerializer ());
+
+		DataElementJsonSerializerRegistry.getInstance ().registerSerializer (JsonArrayDataElement.class, new JsonArrayDataElement.JsonSerializer ());
+		DataElementJsonSerializerRegistry.getInstance ().registerSerializer (JsonObjectDataElement.class, new JsonObjectDataElement.JsonSerializer ());
+
+		DataElementJsonSerializerRegistry.getInstance ().registerSerializer (IntegerRangeDataElement.class, new IntegerRangeDataElement.JsonSerializer ());
 
 		//EnumDataElement.JsonSerializer won't be registered here, since the final class of the data element is not known at this phase.
 	}
@@ -55,7 +60,7 @@ public class DataElementsModule extends FacesModule {
 
 	@Override
 	public void finish () throws FacesException {
-		DataElementUniversalSerializer.getInstance ().unregisterDataElementClass (BooleanDataElement.class);
+		DataElementJsonSerializerRegistry.getInstance ().unregisterDataElementClass (BooleanDataElement.class);
 	}
 
 }

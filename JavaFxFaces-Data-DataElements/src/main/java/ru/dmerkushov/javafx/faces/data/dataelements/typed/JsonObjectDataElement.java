@@ -8,9 +8,10 @@ package ru.dmerkushov.javafx.faces.data.dataelements.typed;
 import java.io.StringReader;
 import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
-import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializerImpl;
+import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializer;
 import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
 
 /**
@@ -52,10 +53,32 @@ public class JsonObjectDataElement extends DataElement<JsonObject> {
 		return jr.readObject ();
 	}
 
-	public static class JsonSerializer extends DataElementJsonSerializerImpl<JsonObjectDataElement, JsonObject> {
+	public static class JsonSerializer implements DataElementJsonSerializer<JsonObjectDataElement> {
 
-		public JsonSerializer () {
-			super (JsonObjectDataElement.class, JsonObject.class, new String[]{"elementTitle", "elementId", "defaultValue", "persistenceProvider"});
+		@Override
+		public JsonObjectBuilder serialize (JsonObjectDataElement dataElement) {
+			JsonObjectBuilder job = Json.createObjectBuilder ();
+
+			job.add ("elementTitle", dataElement.elementTitle);
+			job.add ("elementId", dataElement.elementId);
+			job.add ("defaultValue", dataElement.defaultValue);
+			job.add ("currentValue", dataElement.currentValueProperty.get ());
+
+			return job;
+		}
+
+		@Override
+		public JsonObjectDataElement deserialize (JsonObject json, DataElementPersistenceProvider persistenceProvider) {
+			String elementTitle = json.getString ("elementTitle", "");
+			String elementId = json.getString ("elementId", "");
+			JsonObject defaultValue = json.getJsonObject ("defaultValue");
+
+			JsonObjectDataElement jode = new JsonObjectDataElement (elementTitle, elementId, defaultValue, persistenceProvider);
+
+			JsonObject currentValue = json.getJsonObject ("currentValue");
+			jode.getCurrentValueProperty ().set (currentValue);
+
+			return jode;
 		}
 
 	}

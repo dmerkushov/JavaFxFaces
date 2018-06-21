@@ -12,13 +12,13 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
-import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializer;
-import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementSerializerException;
 import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
 
 /**
  *
  * @author dmerkushov
+ * @param <DE> the class of the data element
+ * @param <DET> the class of the data wrapped by the data element
  */
 public class DataElementJsonSerializerImpl<DE extends DataElement<DET>, DET> implements DataElementJsonSerializer<DE> {
 

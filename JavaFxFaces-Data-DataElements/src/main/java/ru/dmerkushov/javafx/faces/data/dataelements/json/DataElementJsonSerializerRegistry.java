@@ -22,12 +22,12 @@ import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersisten
  *
  * @author dmerkushov
  */
-public class DataElementUniversalSerializer {
+public class DataElementJsonSerializerRegistry {
 
 	////////////////////////////////////////////////////////////////////////////
 	// DataElementProducer is a singleton class
 	////////////////////////////////////////////////////////////////////////////
-	private static DataElementUniversalSerializer _instance;
+	private static DataElementJsonSerializerRegistry _instance;
 
 	/**
 	 * Get the single instance of DataElementProducer
@@ -35,14 +35,14 @@ public class DataElementUniversalSerializer {
 	 * @return The same instance of DataElementProducer every time the method is
 	 * called
 	 */
-	public static synchronized DataElementUniversalSerializer getInstance () {
+	public static synchronized DataElementJsonSerializerRegistry getInstance () {
 		if (_instance == null) {
-			_instance = new DataElementUniversalSerializer ();
+			_instance = new DataElementJsonSerializerRegistry ();
 		}
 		return _instance;
 	}
 
-	private DataElementUniversalSerializer () {
+	private DataElementJsonSerializerRegistry () {
 	}
 	////////////////////////////////////////////////////////////////////////////
 
@@ -116,7 +116,7 @@ public class DataElementUniversalSerializer {
 		} catch (RuntimeException ex) {
 			throw new DataElementSerializerException (ex);
 		}
-		return DataElementUniversalSerializer.this.deserialize (json, persistenceProvider);
+		return DataElementJsonSerializerRegistry.this.deserialize (json, persistenceProvider);
 	}
 
 	public JsonObject serialize (DataElement dataElement) {

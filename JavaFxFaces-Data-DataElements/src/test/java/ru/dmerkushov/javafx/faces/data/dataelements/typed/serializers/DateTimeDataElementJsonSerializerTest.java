@@ -11,7 +11,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
-import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementUniversalSerializer;
+import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializerRegistry;
 import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
 import ru.dmerkushov.javafx.faces.data.dataelements.typed.DateTimeDataElement;
 
@@ -23,7 +23,7 @@ public class DateTimeDataElementJsonSerializerTest {
 
 	@BeforeClass
 	public static void beforeClass () {
-		DataElementUniversalSerializer.getInstance ().registerSerializer (DateTimeDataElement.class, new DateTimeDataElement.JsonSerializer ());
+		DataElementJsonSerializerRegistry.getInstance ().registerSerializer (DateTimeDataElement.class, new DateTimeDataElement.JsonSerializer ());
 	}
 
 	@Test
@@ -56,13 +56,13 @@ public class DateTimeDataElementJsonSerializerTest {
 		System.out.println ("Original - default value: " + sde.defaultValue);
 		System.out.println ("Original - current value: " + sde.getCurrentValueProperty ().get ());
 
-		JsonObject json = DataElementUniversalSerializer.getInstance ().serialize (sde);
+		JsonObject json = DataElementJsonSerializerRegistry.getInstance ().serialize (sde);
 
 		System.out.println ("JSON: " + json.toString ());
 
 		DataElement dde;
 		try {
-			dde = DataElementUniversalSerializer.getInstance ().deserialize (json, pp);
+			dde = DataElementJsonSerializerRegistry.getInstance ().deserialize (json, pp);
 		} catch (ClassNotFoundException ex) {
 			ex.printStackTrace (System.err);
 			return;
