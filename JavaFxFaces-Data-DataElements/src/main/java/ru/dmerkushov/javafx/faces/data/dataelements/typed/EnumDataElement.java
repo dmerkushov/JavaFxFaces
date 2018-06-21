@@ -78,7 +78,7 @@ public class EnumDataElement<T> extends DataElement<T> {
 		if (valueFxNode == null) {
 			ComboBox comboBox = new ComboBox<> ();
 			comboBox.getItems ().addAll (values ());
-			comboBox.valueProperty ().bindBidirectional (currentValueProperty);
+			comboBox.valueProperty ().bindBidirectional (getCurrentValueProperty ());
 			valueFxNode = comboBox;
 		}
 

@@ -34,7 +34,7 @@ public class DateTimeDataElement extends DataElement<LocalDateTime> {
 	public final ObjectProperty<LocalDate> currentValueLocalDateProperty = new ObjectPropertyBase<LocalDate> () {
 		@Override
 		public LocalDate get () {
-			return currentValueProperty.get ().toLocalDate ();
+			return getCurrentValueProperty ().get ().toLocalDate ();
 		}
 
 		@Override
@@ -43,13 +43,13 @@ public class DateTimeDataElement extends DataElement<LocalDateTime> {
 			int month = v.get (ChronoField.MONTH_OF_YEAR);
 			int dayOfMonth = v.get (ChronoField.DAY_OF_MONTH);
 
-			LocalDateTime curr = currentValueProperty.getValue ();
+			LocalDateTime curr = getCurrentValueProperty ().getValue ();
 			int hour = curr.get (ChronoField.HOUR_OF_DAY);
 			int minute = curr.get (ChronoField.MINUTE_OF_HOUR);
 			int second = curr.get (ChronoField.SECOND_OF_MINUTE);
 			int nanoOfSecond = curr.get (ChronoField.NANO_OF_SECOND);
 
-			currentValueProperty.set (LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond));
+			getCurrentValueProperty ().set (LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond));
 		}
 
 		@Override
@@ -66,12 +66,12 @@ public class DateTimeDataElement extends DataElement<LocalDateTime> {
 	public final ObjectProperty<Integer> currentValueHourProperty = new ObjectPropertyBase<Integer> () {
 		@Override
 		public Integer get () {
-			return currentValueProperty.get ().getHour ();
+			return getCurrentValueProperty ().get ().getHour ();
 		}
 
 		@Override
 		public void set (Integer v) {
-			LocalDateTime curr = currentValueProperty.getValue ();
+			LocalDateTime curr = getCurrentValueProperty ().getValue ();
 			int year = curr.get (ChronoField.YEAR);
 			int month = curr.get (ChronoField.MONTH_OF_YEAR);
 			int dayOfMonth = curr.get (ChronoField.DAY_OF_MONTH);
@@ -82,7 +82,7 @@ public class DateTimeDataElement extends DataElement<LocalDateTime> {
 			int second = curr.get (ChronoField.SECOND_OF_MINUTE);
 			int nanoOfSecond = curr.get (ChronoField.NANO_OF_SECOND);
 
-			currentValueProperty.set (LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond));
+			getCurrentValueProperty ().set (LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond));
 		}
 
 		@Override
@@ -99,12 +99,12 @@ public class DateTimeDataElement extends DataElement<LocalDateTime> {
 	public final ObjectProperty<Integer> currentValueMinuteProperty = new ObjectPropertyBase<Integer> () {
 		@Override
 		public Integer get () {
-			return currentValueProperty.get ().getMinute ();
+			return getCurrentValueProperty ().get ().getMinute ();
 		}
 
 		@Override
 		public void set (Integer v) {
-			LocalDateTime curr = currentValueProperty.getValue ();
+			LocalDateTime curr = getCurrentValueProperty ().getValue ();
 			int year = curr.get (ChronoField.YEAR);
 			int month = curr.get (ChronoField.MONTH_OF_YEAR);
 			int dayOfMonth = curr.get (ChronoField.DAY_OF_MONTH);
@@ -115,7 +115,7 @@ public class DateTimeDataElement extends DataElement<LocalDateTime> {
 			int second = curr.get (ChronoField.SECOND_OF_MINUTE);
 			int nanoOfSecond = curr.get (ChronoField.NANO_OF_SECOND);
 
-			currentValueProperty.set (LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond));
+			getCurrentValueProperty ().set (LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond));
 		}
 
 		@Override

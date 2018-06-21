@@ -43,7 +43,7 @@ public class BooleanDataElement extends DataElement<Boolean> {
 	public Node getValueFxNode () {
 		if (valueFxNode == null) {
 			CheckBox checkBox = new CheckBox ();
-			checkBox.selectedProperty ().bindBidirectional (currentValueProperty);
+			checkBox.selectedProperty ().bindBidirectional (getCurrentValueProperty ());
 			valueFxNode = checkBox;
 		}
 

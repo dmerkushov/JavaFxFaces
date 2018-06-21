@@ -62,7 +62,7 @@ public class JsonObjectDataElement extends DataElement<JsonObject> {
 			job.add ("elementTitle", dataElement.elementTitle);
 			job.add ("elementId", dataElement.elementId);
 			job.add ("defaultValue", dataElement.defaultValue);
-			job.add ("currentValue", dataElement.currentValueProperty.get ());
+			job.add ("currentValue", dataElement.getCurrentValueProperty ().get ());
 
 			return job;
 		}

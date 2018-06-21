@@ -50,9 +50,9 @@ public abstract class DataElement<T> {
 	protected Node valueFxNode;
 	protected Node titleFxNode;
 
-	protected ObjectProperty<T> currentValueProperty;
-	protected ObjectProperty<String> currentValueStoredStringProperty;
-	protected ObjectProperty<String> currentValueDisplayedStringProperty;
+	private ObjectProperty<T> currentValueProperty;
+	private ObjectProperty<String> currentValueStoredStringProperty;
+	private ObjectProperty<String> currentValueDisplayedStringProperty;
 
 	/**
 	 *
@@ -72,34 +72,6 @@ public abstract class DataElement<T> {
 		this.valueType = valueType;
 		this.defaultValue = defaultValue;
 		this.persistenceProvider = persistenceProvider;
-
-		this.currentValueProperty = new SimpleObjectProperty<> (this.defaultValue);
-
-		this.currentValueStoredStringProperty = new SimpleObjectProperty<> ();
-		Bindings.bindBidirectional (currentValueStoredStringProperty, currentValueProperty, new StringConverter<T> () {
-			@Override
-			public String toString (T object) {
-				return valueToStoredString (object);
-			}
-
-			@Override
-			public T fromString (String string) {
-				return storedStringToValue (string);
-			}
-		});
-
-		this.currentValueDisplayedStringProperty = new SimpleObjectProperty<> ();
-		Bindings.bindBidirectional (currentValueDisplayedStringProperty, currentValueProperty, new StringConverter<T> () {
-			@Override
-			public String toString (T object) {
-				return valueToDisplayedString (object);
-			}
-
-			@Override
-			public T fromString (String string) {
-				return displayedStringToValue (string);
-			}
-		});
 	}
 
 	/**
@@ -146,6 +118,9 @@ public abstract class DataElement<T> {
 	 * @return
 	 */
 	public ObjectProperty<T> getCurrentValueProperty () {
+		if (currentValueProperty == null) {
+			this.currentValueProperty = new SimpleObjectProperty<> (this.defaultValue);
+		}
 		return currentValueProperty;
 	}
 
@@ -156,6 +131,21 @@ public abstract class DataElement<T> {
 	 * @return
 	 */
 	public ObjectProperty<String> getCurrentValueStoredStringProperty () {
+		if (currentValueStoredStringProperty == null) {
+			this.currentValueStoredStringProperty = new SimpleObjectProperty<> ();
+			Bindings.bindBidirectional (currentValueStoredStringProperty, getCurrentValueProperty (), new StringConverter<T> () {
+				@Override
+				public String toString (T object) {
+					return valueToStoredString (object);
+				}
+
+				@Override
+				public T fromString (String string) {
+					return storedStringToValue (string);
+				}
+			}
+			);
+		}
 		return currentValueStoredStringProperty;
 	}
 
@@ -166,6 +156,20 @@ public abstract class DataElement<T> {
 	 * @return
 	 */
 	public ObjectProperty<String> getCurrentValueDisplayedStringProperty () {
+		if (currentValueDisplayedStringProperty == null) {
+			this.currentValueDisplayedStringProperty = new SimpleObjectProperty<> ();
+			Bindings.bindBidirectional (currentValueDisplayedStringProperty, getCurrentValueProperty (), new StringConverter<T> () {
+				@Override
+				public String toString (T object) {
+					return valueToDisplayedString (object);
+				}
+
+				@Override
+				public T fromString (String string) {
+					return displayedStringToValue (string);
+				}
+			});
+		}
 		return currentValueDisplayedStringProperty;
 	}
 
