@@ -40,9 +40,9 @@ public class DurationDataElement extends DataElement<Duration> {
 				persistenceProvider
 		);
 
-		minutes = getCurrentValueProperty ().get ().toMinutes () % 60;
-		hours = getCurrentValueProperty ().get ().toHours () % 24;
-		days = getCurrentValueProperty ().get ().toDays ();
+		minutes = getCurrentValueProperty ().getValue ().toMinutes () % 60;
+		hours = getCurrentValueProperty ().getValue ().toHours () % 24;
+		days = getCurrentValueProperty ().getValue ().toDays ();
 
 		showNewValues ();
 
@@ -97,9 +97,9 @@ public class DurationDataElement extends DataElement<Duration> {
 					if (realNewVal.equals ("")) {
 						realNewVal = "0";
 					}
-					getCurrentValueProperty ().set (
-							getCurrentValueProperty ().get ()
-									.minus (Duration.ofDays (getCurrentValueProperty ().get ().toDays ()))
+					getCurrentValueProperty ().setValue (
+							getCurrentValueProperty ().getValue ()
+									.minus (Duration.ofDays (getCurrentValueProperty ().getValue ().toDays ()))
 									.plus (Duration.ofDays (Long.parseLong (realNewVal)))
 					);
 				}
@@ -113,9 +113,9 @@ public class DurationDataElement extends DataElement<Duration> {
 					if (realNewVal.equals ("")) {
 						realNewVal = "0";
 					}
-					getCurrentValueProperty ().set (
-							getCurrentValueProperty ().get ()
-									.minus (Duration.ofHours (getCurrentValueProperty ().get ().toHours () % 24))
+					getCurrentValueProperty ().setValue (
+							getCurrentValueProperty ().getValue ()
+									.minus (Duration.ofHours (getCurrentValueProperty ().getValue ().toHours () % 24))
 									.plus (Duration.ofHours (Long.parseLong (realNewVal)))
 					);
 				}
@@ -129,9 +129,9 @@ public class DurationDataElement extends DataElement<Duration> {
 					if (realNewVal.equals ("")) {
 						realNewVal = "0";
 					}
-					getCurrentValueProperty ().set (
-							getCurrentValueProperty ().get ()
-									.minus (Duration.ofMinutes (getCurrentValueProperty ().get ().toMinutes () % 60))
+					getCurrentValueProperty ().setValue (
+							getCurrentValueProperty ().getValue ()
+									.minus (Duration.ofMinutes (getCurrentValueProperty ().getValue ().toMinutes () % 60))
 									.plus (Duration.ofMinutes (Long.parseLong (realNewVal)))
 					);
 				}
@@ -164,7 +164,7 @@ public class DurationDataElement extends DataElement<Duration> {
 		hours = Long.parseLong (hoursField.textProperty ().get ());
 		days = Long.parseLong (daysField.textProperty ().get ());
 
-		getCurrentValueProperty ().set (Duration.ofDays (days).plus (Duration.ofHours (hours)).plus (Duration.ofMinutes (minutes)));
+		getCurrentValueProperty ().setValue (Duration.ofDays (days).plus (Duration.ofHours (hours)).plus (Duration.ofMinutes (minutes)));
 	}
 
 	private void showNewValues () {

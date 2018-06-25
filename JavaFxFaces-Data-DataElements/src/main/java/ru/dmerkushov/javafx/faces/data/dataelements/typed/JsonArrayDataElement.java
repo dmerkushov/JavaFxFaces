@@ -63,7 +63,7 @@ public class JsonArrayDataElement extends DataElement<JsonArray> {
 			job.add ("elementTitle", dataElement.elementTitle);
 			job.add ("elementId", dataElement.elementId);
 			job.add ("defaultValue", dataElement.defaultValue);
-			job.add ("currentValue", dataElement.getCurrentValueProperty ().get ());
+			job.add ("currentValue", dataElement.getCurrentValueProperty ().getValue ());
 
 			return job;
 		}
@@ -77,7 +77,7 @@ public class JsonArrayDataElement extends DataElement<JsonArray> {
 			JsonArrayDataElement jade = new JsonArrayDataElement (elementTitle, elementId, defaultValue, persistenceProvider);
 
 			JsonArray currentValue = json.getJsonArray ("currentValue");
-			jade.getCurrentValueProperty ().set (currentValue);
+			jade.getCurrentValueProperty ().setValue (currentValue);
 
 			return jade;
 		}

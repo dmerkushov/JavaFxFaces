@@ -57,7 +57,7 @@ public class DataElementRegistry {
 
 			DataElementPersistenceProvider persistenceProvider = dataElement.getPersistenceProvider ();
 			if (persistenceProvider != null) {
-				dataElement.getCurrentValueProperty ().set (dataElement.storedStringToValue (persistenceProvider.load (dataElement)));
+				dataElement.getCurrentValueProperty ().setValue (dataElement.storedStringToValue (persistenceProvider.load (dataElement)));
 			}
 			dataElements.put (dataElement.elementId, dataElement);
 

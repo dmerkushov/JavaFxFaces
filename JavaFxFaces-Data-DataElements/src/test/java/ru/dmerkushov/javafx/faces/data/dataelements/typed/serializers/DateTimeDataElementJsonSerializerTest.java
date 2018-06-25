@@ -47,14 +47,14 @@ public class DateTimeDataElementJsonSerializerTest {
 		};
 
 		DateTimeDataElement sde = new DateTimeDataElement (title, id, defaultValue, pp);
-		sde.getCurrentValueProperty ().set (currentValue);
+		sde.getCurrentValueProperty ().setValue (currentValue);
 
 		System.out.println ("Original - element type: " + sde.getClass ().getCanonicalName ());
 		System.out.println ("Original - title: " + sde.elementTitle);
 		System.out.println ("Original - id: " + sde.elementId);
 		System.out.println ("Original - value type: " + sde.valueType.getCanonicalName ());
 		System.out.println ("Original - default value: " + sde.defaultValue);
-		System.out.println ("Original - current value: " + sde.getCurrentValueProperty ().get ());
+		System.out.println ("Original - current value: " + sde.getCurrentValueProperty ().getValue ());
 
 		JsonObject json = DataElementJsonSerializerRegistry.getInstance ().serialize (sde);
 
@@ -73,7 +73,7 @@ public class DateTimeDataElementJsonSerializerTest {
 		Assert.assertEquals (id, dde.elementId);
 		Assert.assertEquals (valueType, dde.valueType);
 		Assert.assertEquals (defaultValue, dde.defaultValue);
-		Assert.assertEquals (currentValue, dde.getCurrentValueProperty ().get ());
+		Assert.assertEquals (currentValue, dde.getCurrentValueProperty ().getValue ());
 		Assert.assertEquals (pp, dde.getPersistenceProvider ());
 
 		System.out.println ("Deserialized - element type: " + dde.getClass ().getCanonicalName ());
@@ -81,7 +81,7 @@ public class DateTimeDataElementJsonSerializerTest {
 		System.out.println ("Deserialized - id: " + dde.elementId);
 		System.out.println ("Deserialized - value type: " + dde.valueType.getCanonicalName ());
 		System.out.println ("Deserialized - default value: " + dde.defaultValue);
-		System.out.println ("Deserialized - current value: " + dde.getCurrentValueProperty ().get ());
+		System.out.println ("Deserialized - current value: " + dde.getCurrentValueProperty ().getValue ());
 	}
 
 }

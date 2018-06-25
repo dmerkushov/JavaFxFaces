@@ -28,8 +28,8 @@ public class IntegerRangeDataElement extends DataElement<IntegerRange> {
 				persistenceProvider
 		);
 
-		minValueProperty = new SimpleIntegerProperty (getCurrentValueProperty ().get ().getMin ());
-		maxValueProperty = new SimpleIntegerProperty (getCurrentValueProperty ().get ().getMax ());
+		minValueProperty = new SimpleIntegerProperty (getCurrentValueProperty ().getValue ().getMin ());
+		maxValueProperty = new SimpleIntegerProperty (getCurrentValueProperty ().getValue ().getMax ());
 		getCurrentValueProperty ().addListener ((ObservableValue<? extends IntegerRange> observable, IntegerRange oldValue, IntegerRange newValue) -> {
 			if (newValue.getMin () != minValueProperty.get ()) {
 				minValueProperty.set (newValue.getMin ());
@@ -39,16 +39,16 @@ public class IntegerRangeDataElement extends DataElement<IntegerRange> {
 			}
 		});
 		minValueProperty.addListener ((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
-			IntegerRange currentVal = getCurrentValueProperty ().get ();
+			IntegerRange currentVal = getCurrentValueProperty ().getValue ();
 			int currentMax = currentVal.getMax ();
 			IntegerRange newVal = new IntegerRange ((Integer) newValue, currentMax, currentVal.minIsBest);
-			getCurrentValueProperty ().set (newVal);
+			getCurrentValueProperty ().setValue (newVal);
 		});
 		maxValueProperty.addListener ((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
-			IntegerRange currentVal = getCurrentValueProperty ().get ();
+			IntegerRange currentVal = getCurrentValueProperty ().getValue ();
 			int currentMin = currentVal.getMin ();
 			IntegerRange newVal = new IntegerRange ((Integer) newValue, currentMin, currentVal.minIsBest);
-			getCurrentValueProperty ().set (newVal);
+			getCurrentValueProperty ().setValue (newVal);
 		});
 
 		if (this.defaultValue.minIsBest) {
@@ -84,7 +84,7 @@ public class IntegerRangeDataElement extends DataElement<IntegerRange> {
 		if (valueFxNode == null) {
 			TextField minField = new TextField ();
 			minValueProperty.addListener ((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
-				IntegerRange currentVal = getCurrentValueProperty ().get ();
+				IntegerRange currentVal = getCurrentValueProperty ().getValue ();
 				int currentMax = currentVal.getMax ();
 				IntegerRange newVal = new IntegerRange ((Integer) newValue, currentMax, currentVal.minIsBest);
 				minField.textProperty ().set (newVal.getMin ().toString ());
@@ -104,7 +104,7 @@ public class IntegerRangeDataElement extends DataElement<IntegerRange> {
 
 			TextField maxField = new TextField ();
 			maxValueProperty.addListener ((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
-				IntegerRange currentVal = getCurrentValueProperty ().get ();
+				IntegerRange currentVal = getCurrentValueProperty ().getValue ();
 				int currentMin = currentVal.getMin ();
 				IntegerRange newVal = new IntegerRange ((Integer) newValue, currentMin, currentVal.minIsBest);
 				maxField.textProperty ().set (newVal.getMax ().toString ());

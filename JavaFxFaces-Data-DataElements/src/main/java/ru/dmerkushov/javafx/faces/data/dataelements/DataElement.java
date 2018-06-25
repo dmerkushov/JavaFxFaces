@@ -8,6 +8,7 @@ package ru.dmerkushov.javafx.faces.data.dataelements;
 import java.util.Objects;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -117,7 +118,7 @@ public abstract class DataElement<T> {
 	 *
 	 * @return
 	 */
-	public ObjectProperty<T> getCurrentValueProperty () {
+	public Property<T> getCurrentValueProperty () {
 		if (currentValueProperty == null) {
 			this.currentValueProperty = new SimpleObjectProperty<> (this.defaultValue);
 		}
