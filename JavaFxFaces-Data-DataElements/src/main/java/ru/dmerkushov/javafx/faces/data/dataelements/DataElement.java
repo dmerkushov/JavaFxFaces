@@ -189,6 +189,16 @@ public abstract class DataElement<T> {
 	}
 
 	/**
+	 * Get the JavaFX node used to only read the data element's value. This is
+	 * useful for data elements in tables.
+	 *
+	 * @return
+	 */
+	public Node getValueViewFxNode () {
+		return getValueFxNode ();
+	}
+
+	/**
 	 * Get the JavaFX node used to show the title of this data element
 	 *
 	 * @return
