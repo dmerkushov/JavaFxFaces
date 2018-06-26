@@ -6,6 +6,7 @@
 package ru.dmerkushov.javafx.faces.data.dataelements;
 
 import java.util.Objects;
+import java.util.UUID;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
@@ -13,15 +14,18 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.util.StringConverter;
 import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
+import ru.dmerkushov.javafx.faces.panels.FacesPanel;
+import ru.dmerkushov.javafx.faces.panels.FacesPanelView;
 
 /**
  *
  * @author Dmitriy Merkushov (d.merkushov at gmail.com)
  * @param <T> The type of the data element in the database
  */
-public abstract class DataElement<T> {
+public abstract class DataElement<T> extends FacesPanel {
 
 	/**
 	 * The data element's title to be displayed
@@ -49,6 +53,7 @@ public abstract class DataElement<T> {
 	private DataElementPersistenceProvider persistenceProvider;
 
 	protected Node valueFxNode;
+	protected Node valueViewFxNode;
 	protected Node titleFxNode;
 
 	private ObjectProperty<T> currentValueProperty;
@@ -182,7 +187,7 @@ public abstract class DataElement<T> {
 	public Node getValueFxNode () {
 		if (valueFxNode == null) {
 			TextField textField = new TextField ();
-			textField.textProperty ().bindBidirectional (currentValueDisplayedStringProperty);
+			textField.textProperty ().bindBidirectional (getCurrentValueDisplayedStringProperty ());
 			valueFxNode = textField;
 		}
 		return valueFxNode;
@@ -195,7 +200,13 @@ public abstract class DataElement<T> {
 	 * @return
 	 */
 	public Node getValueViewFxNode () {
-		return getValueFxNode ();
+		if (valueViewFxNode == null) {
+			Label label = new Label ();
+			label.textProperty ().bind (getCurrentValueDisplayedStringProperty ());
+			valueViewFxNode = label;
+		}
+
+		return valueViewFxNode;
 	}
 
 	/**
@@ -217,5 +228,35 @@ public abstract class DataElement<T> {
 
 	public void setPersistenceProvider (DataElementPersistenceProvider persistenceProvider) {
 		this.persistenceProvider = persistenceProvider;
+	}
+
+	@Override
+	public UUID getPanelInstanceUuid () {
+		return UUID.randomUUID ();
+	}
+
+	@Override
+	public String getDisplayName () {
+		return elementTitle;
+	}
+
+	@Override
+	public String getToolTip () {
+		return elementTitle;
+	}
+
+	@Override
+	protected Image prepareIcon (int width, int height) {
+		return null;
+	}
+
+	private FacesPanelView fpView;
+
+	@Override
+	public FacesPanelView getView () {
+		if (fpView == null) {
+			fpView = new FacesPanelView (this, getValueFxNode ());
+		}
+		return fpView;
 	}
 }

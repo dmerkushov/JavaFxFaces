@@ -49,7 +49,6 @@ public abstract class FacesPanel {
 		synchronized (iconsLock) {
 			if (!icons.containsKey (d)) {
 				Image appIcon = prepareIcon (d.width, d.height);
-				PixelReader appIconR = appIcon.getPixelReader ();
 
 				icons.put (d, appIcon);
 			}
@@ -59,6 +58,12 @@ public abstract class FacesPanel {
 		return resultIcon;
 	}
 
+	/**
+	 * @deprecated No need in this method
+	 * @param srcIcon
+	 * @param bgColor
+	 * @return
+	 */
 	public static final Image getIconOnBackgroundColor (Image srcIcon, Color bgColor) {
 		int width = (int) srcIcon.getWidth ();
 		int height = (int) srcIcon.getHeight ();

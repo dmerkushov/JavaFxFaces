@@ -5,27 +5,43 @@
  */
 package ru.dmerkushov.javafxfaces.data.dataelements.table;
 
-import java.util.ArrayList;
+import java.io.StringReader;
 import java.util.Objects;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+import javax.json.JsonReader;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
 
 /**
  *
  * @author dmerkushov
  */
-public class TableData {
+public final class TableData {
 
 	private final RowPattern rp;
-	private final ArrayList<TableDataRow> rows = new ArrayList<> ();
+	private final ObservableList<TableDataRow> rows = FXCollections.<TableDataRow>observableArrayList ();
 	private TableDataProperty tdp = null;
 
 	public TableData (RowPattern rp) {
 		Objects.requireNonNull (rp, "rm");
 
 		this.rp = rp;
+
+		rows.addListener (new ListChangeListener<TableDataRow> () {
+			@Override
+			public void onChanged (ListChangeListener.Change<? extends TableDataRow> c) {
+				getTableDataProperty ().valueChanged ();
+			}
+		});
 	}
 
 	public TableDataProperty getTableDataProperty () {
@@ -36,42 +52,73 @@ public class TableData {
 		return tdp;
 	}
 
-	public void addRow (TableDataRow tdr) {
-		Objects.requireNonNull (tdr, "tdr");
-
-		insertRow (rows.size (), tdr);
-
-		getTableDataProperty ().valueChanged ();
-	}
-
-	public void insertRow (int rowIndex, TableDataRow tdr) {
-		Objects.requireNonNull (tdr, "tdr");
-
-		rows.add (rowIndex, tdr);
-
-		tdr.addListeners ();
-
-		getTableDataProperty ().valueChanged ();
-	}
-
-	public void removeRow (int rowIndex) {
-		TableDataRow tdr = rows.remove (rowIndex);
-
-		tdr.removeListeners ();
-
-		getTableDataProperty ().valueChanged ();
-	}
-
-	public TableDataRow getRow (int rowIndex) {
-		return rows.get (rowIndex);
+	public ObservableList<TableDataRow> getRows () {
+		return rows;
 	}
 
 	public RowPattern getRowPattern () {
 		return rp;
 	}
 
+	public TableDataRow newRow (DataElement... dataElements) {
+		return new TableDataRow (dataElements);
+	}
+
+	String toStoredString () {
+		JsonObjectBuilder job = Json.createObjectBuilder ();
+
+		JsonObjectBuilder rpJob = Json.createObjectBuilder ();
+
+		JsonArrayBuilder rpCtJab = Json.createArrayBuilder ();
+		int rpSize = rp.columnTitles.length;
+		for (int i = 0; i < rpSize; i++) {
+			rpCtJab.add (rp.columnTitles[i]);
+		}
+		rpJob.add ("columnTitles", rpCtJab);
+
+		JsonArrayBuilder rpDcJab = Json.createArrayBuilder ();
+		for (int i = 0; i < rpSize; i++) {
+			rpDcJab.add (rp.dataClasses[i].getCanonicalName ());
+		}
+		rpJob.add ("dataClasses", rpDcJab);
+
+		job.add ("rowPattern", rpJob);
+
+		return job.build ().toString ();
+	}
+
+	static TableData fromStoredString (String str) throws ClassNotFoundException {
+		JsonReader jr = Json.createReader (new StringReader (str));
+		JsonObject jo = jr.readObject ();
+
+		JsonObject rpJo = jo.getJsonObject ("rowPattern");
+		JsonArray rpCt = rpJo.getJsonArray ("columnTitles");
+		JsonArray rpDc = rpJo.getJsonArray ("dataClasses");
+
+		int rpSize = rpCt.size ();
+		String[] columnTitles = new String[rpSize];
+		for (int i = 0; i < rpSize; i++) {
+			columnTitles[i] = rpCt.getString (i, "");
+		}
+
+		Class<DataElement>[] dataClasses = new Class[rpSize];
+		for (int i = 0; i < rpSize; i++) {
+			dataClasses[i] = (Class<DataElement>) Class.forName (rpDc.getString (i));
+		}
+
+		RowPattern rp = new RowPattern (columnTitles, dataClasses);
+
+		TableData td = new TableData (rp);
+
+		return td;
+	}
+
 	////////////////////////////////////////////////////////////////////////////
-	public class TableDataProperty extends SimpleObjectProperty<TableData> {
+	public final class TableDataProperty extends SimpleObjectProperty<TableData> {
+
+		private TableDataProperty () {
+			super (TableData.this);
+		}
 
 		void valueChanged () {
 			this.fireValueChangedEvent ();
@@ -79,11 +126,11 @@ public class TableData {
 	}
 
 	////////////////////////////////////////////////////////////////////////////
-	public class TableDataRow {
+	public final class TableDataRow {
 
 		DataElement[] dataElements;
 
-		public TableDataRow (DataElement... dataElements) {
+		private TableDataRow (DataElement... dataElements) {
 			Objects.requireNonNull (dataElements, "dataElements");
 
 			if (dataElements.length != TableData.this.rp.dataClasses.length) {
@@ -127,7 +174,7 @@ public class TableData {
 	}
 
 	////////////////////////////////////////////////////////////////////////////
-	public static class RowPattern {
+	public static final class RowPattern {
 
 		public final Class<DataElement>[] dataClasses;
 		public final String[] columnTitles;
@@ -153,7 +200,6 @@ public class TableData {
 				this.columnTitles[i] = columnTitles[i] != null ? columnTitles[i] : "";
 			}
 		}
-
 	}
 
 }
