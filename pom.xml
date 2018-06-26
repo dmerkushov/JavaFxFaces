@@ -12,6 +12,7 @@
 		<module>JavaFxFaces-Docks-Table</module>
 		<module>JavaFxFaces-Docks-Wizard</module>
 		<module>JavaFxFaces-Data-DataElements</module>
+	 <module>JavaFxFaces-Data-DataElements-Table</module>
 	</modules>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

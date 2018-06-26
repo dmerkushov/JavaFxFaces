@@ -47,6 +47,10 @@ public class DataElementRegistry {
 	private final Map<UUID, ArrayList<DataElement>> pageDataElements = new HashMap<> ();
 	private final Map<DataElement, UUID> dataElementPages = new HashMap<> ();
 
+	public void registerDataElement (DataElement dataElement) {
+		registerDataElement (dataElement, null);
+	}
+
 	public void registerDataElement (DataElement dataElement, UUID panelUuid) {
 		Objects.requireNonNull (dataElement, "dataElement");
 
