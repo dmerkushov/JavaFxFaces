@@ -220,7 +220,7 @@ public class DataElementJsonSerializerImpl<DE extends DataElement<DET>, DET> imp
 	 * By default, this method points to the {@link DataElement#storedStringToValue(java.lang.String)
 	 * } method of the {@link #mockDataElement mock data element}, but it may be
 	 * overridden for the needs of the serializer. Note that it must be paired
-	 * with {@link #stringToValue(java.lang.String) }
+	 * with {@link #valueToString(java.lang.String) }
 	 *
 	 * @param str
 	 * @return
