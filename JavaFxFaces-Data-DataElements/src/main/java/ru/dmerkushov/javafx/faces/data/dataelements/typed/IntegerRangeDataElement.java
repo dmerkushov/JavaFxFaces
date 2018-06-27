@@ -80,6 +80,21 @@ public class IntegerRangeDataElement extends DataElement<IntegerRange> {
 	}
 
 	@Override
+	protected String valueToDisplayedString (IntegerRange val) {
+		if (val == null) {
+			return "";
+		}
+
+		return val.getMin () + "-" + val.getMax ();
+	}
+
+	@Override
+	protected IntegerRange displayedStringToValue (String str) {
+		String[] vals = str.split ("-");
+		return new IntegerRange (Integer.valueOf (vals[0]), Integer.valueOf (vals[1]), this.getCurrentValueProperty ().getValue ().minIsBest);
+	}
+
+	@Override
 	public Node getValueFxNode () {
 		if (valueFxNode == null) {
 			TextField minField = new TextField ();
@@ -101,6 +116,7 @@ public class IntegerRangeDataElement extends DataElement<IntegerRange> {
 					minValueProperty.set (Integer.parseInt (realNewVal));
 				}
 			});
+			minField.textProperty ().setValue (getCurrentValueProperty ().getValue ().getMin ().toString ());
 
 			TextField maxField = new TextField ();
 			maxValueProperty.addListener ((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
@@ -121,6 +137,7 @@ public class IntegerRangeDataElement extends DataElement<IntegerRange> {
 					maxValueProperty.set (Integer.parseInt (realNewVal));
 				}
 			});
+			maxField.textProperty ().setValue (getCurrentValueProperty ().getValue ().getMax ().toString ());
 
 			HBox hb = new HBox ();
 			hb.getChildren ().add (minField);
