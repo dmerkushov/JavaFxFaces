@@ -15,7 +15,11 @@ import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
 public abstract class UiDataElement extends DataElement<Object> {
 
 	public UiDataElement () {
-		super ("", UUID.randomUUID ().toString (), Object.class, "", null);
+		this ("");
+	}
+
+	public UiDataElement (String displayName) {
+		super (displayName, UUID.randomUUID ().toString (), Object.class, "", null);
 	}
 
 	@Override

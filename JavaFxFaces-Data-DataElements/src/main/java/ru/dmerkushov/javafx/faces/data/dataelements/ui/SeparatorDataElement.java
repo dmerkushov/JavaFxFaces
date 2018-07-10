@@ -23,4 +23,9 @@ public class SeparatorDataElement extends UiDataElement {
 		return valueFxNode;
 	}
 
+	@Override
+	public Node getValueViewFxNode () {
+		return getValueFxNode ();
+	}
+
 }
