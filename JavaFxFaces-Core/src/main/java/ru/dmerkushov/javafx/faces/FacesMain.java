@@ -24,8 +24,6 @@ import javafx.stage.Stage;
 import static ru.dmerkushov.javafx.faces.FacesLogging.facesLoggerWrapper;
 import ru.dmerkushov.javafx.faces.panels.FacesPanel;
 import ru.dmerkushov.javafx.faces.panels.FacesPanels;
-import ru.dmerkushov.javafx.faces.threads.FxThreadChecker;
-import ru.dmerkushov.javafx.faces.threads.FxThreadCheckerException;
 
 /**
  *
@@ -88,16 +86,15 @@ public class FacesMain extends Application {
 		facesLoggerWrapper.exiting ();
 	}
 
-	List<Runnable> listRunBeforePrimaryStageShow = new LinkedList<> ();
+	private static List<Runnable> listRunBeforePrimaryStageShow = java.util.Collections.synchronizedList (new LinkedList<> ());
 
 	/**
 	 * Set a {@link Runnable} to run just before showing the primary stage. The
 	 * runnable will be put on a list for execution. All runnables on that list
-	 * are executed with the following conditions all true by the time of
+	 * are executed once, one after another, in the list order, on the JavaFX
+	 * application thread with the following conditions all true by the time of
 	 * execution:
 	 * <ul>
-	 * <li>Every Runnable on the list is executed once, one after another, in
-	 * the list order, on the JavaFX application thread</li>
 	 * <li>The configured modules are all loaded</li>
 	 * <li>The main scene is initialized</li>
 	 * <li>The main panel is initialized, its size bound to the size of the main
@@ -112,12 +109,9 @@ public class FacesMain extends Application {
 	 *
 	 * @param runnable must not be null
 	 * @throws NullPointerException if runnable is null
-	 * @throws FxThreadCheckerException if executed not on the application
-	 * thread
 	 */
-	public void doBeforePrimaryStageShow (Runnable runnable) {
+	public static void doBeforePrimaryStageShow (Runnable runnable) {
 		Objects.requireNonNull (runnable, "runnable");
-		FxThreadChecker.checkOnAppThread ();
 
 		listRunBeforePrimaryStageShow.add (runnable);
 	}
