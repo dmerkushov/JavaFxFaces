@@ -34,7 +34,7 @@ public class DummyModule extends FacesModule {
 
 	@Override
 	public void initAfterDependenciesLoaded () throws FacesException {
-		dummyPanel.panelLabel.setText (modulePrefs.get ("LABEL_TEXT", "Hallo world"));
+//		dummyPanel.panelLabel.setText (modulePrefs.get ("LABEL_TEXT", "Hallo world"));
 	}
 
 	@Override
