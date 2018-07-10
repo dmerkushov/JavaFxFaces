@@ -9,6 +9,7 @@ import java.util.Objects;
 import javafx.beans.property.Property;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
+import javafx.scene.Node;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
@@ -46,10 +47,10 @@ public class TableDataElementView extends TableView {
 		for (int i = 0; i < rp.columnTitles.length; i++) {
 			tableColumns[i] = new TableColumn (rp.columnTitles[i]);
 
-			final int fini = i;
+			final int fin_i = i;
 
-			tableColumns[i].setCellFactory ((TableColumn) -> new TableDataElementCell (fini));
-			tableColumns[i].setCellValueFactory (new TableDataElementCellValueFactory (fini));
+			tableColumns[i].setCellFactory ((TableColumn) -> new TableDataElementCell (fin_i));
+			tableColumns[i].setCellValueFactory (new TableDataElementCellValueFactory (fin_i));
 		}
 
 		this.setEditable (true);
@@ -57,8 +58,6 @@ public class TableDataElementView extends TableView {
 		this.setItems (tdp.getValue ().getRows ());
 
 		getColumns ().addAll (tableColumns);
-
-//		PropertyValueFactory pf;
 	}
 
 	public class TableDataElementCellValueFactory implements Callback<CellDataFeatures<TableData.TableDataRow, String>, ObservableValue<String>> {
@@ -100,6 +99,11 @@ public class TableDataElementView extends TableView {
 					}
 				}
 			});
+
+			this.getStyleClass ().add ("TableDataElement_table_cell");
+			this.getStyleClass ().add ("TableDataElement_" + TableDataElementView.this.tde.elementId + "_table_cell");
+			this.getStyleClass ().add ("TableDataElement_table_column_" + columnIndex + "_cell");
+			this.getStyleClass ().add ("TableDataElement_" + TableDataElementView.this.tde.elementId + "_table_column_" + columnIndex + "_cell");
 		}
 
 		@Override
@@ -141,11 +145,9 @@ public class TableDataElementView extends TableView {
 
 			DataElement de = tdr.dataElements[columnIndex];
 
-			if (this.isEditing ()) {
-				setGraphic (de.getValueFxNode ());
-			} else {
-				setGraphic (de.getValueViewFxNode ());
-			}
+			Node view = isEditing () ? de.getValueFxNode () : de.getValueViewFxNode ();
+
+			setGraphic (view);
 		}
 
 	}

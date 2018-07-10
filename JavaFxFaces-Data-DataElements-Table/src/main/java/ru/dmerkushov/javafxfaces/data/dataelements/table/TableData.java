@@ -7,6 +7,7 @@ package ru.dmerkushov.javafxfaces.data.dataelements.table;
 
 import java.io.StringReader;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -30,6 +31,7 @@ public final class TableData {
 	private final RowPattern rp;
 	private final ObservableList<TableDataRow> rows = FXCollections.<TableDataRow>observableArrayList ();
 	private TableDataProperty tdp = null;
+	private SimpleObjectProperty<Callable<TableDataRow>> dataRowCreatorProperty = new SimpleObjectProperty<> (null);
 
 	public TableData (RowPattern rp) {
 		Objects.requireNonNull (rp, "rm");
@@ -62,6 +64,23 @@ public final class TableData {
 
 	public TableDataRow newRow (DataElement... dataElements) {
 		return new TableDataRow (dataElements);
+	}
+
+	public TableDataRow createNewRow () {
+
+		if (dataRowCreatorProperty.get () == null) {
+			return null;
+		}
+
+		try {
+			return dataRowCreatorProperty.get ().call ();
+		} catch (Exception ex) {
+			throw new TableDataElementException (ex);
+		}
+	}
+
+	public SimpleObjectProperty<Callable<TableDataRow>> getDataRowCreatorProperty () {
+		return dataRowCreatorProperty;
 	}
 
 	String toStoredString () {
