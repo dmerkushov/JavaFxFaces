@@ -41,16 +41,27 @@ public class DataElementPagePanelView extends FacesPanelView {
 
 		GridPane grid = new GridPane ();
 		grid.getStyleClass ().add ("gridpane-prop");
+		VBox vbox = new VBox ();
+		vbox.getStyleClass ().add ("vbox-prop");
 
-		ArrayList<DataElement> dataElements = depPanel.dataElementList.getDataElements ();
+		ArrayList<DataElement> dataElements = depPanel.dataElementSet.getDataElements ();
 		for (int i = 0; i < dataElements.size (); i++) {
 			DataElement dataElement = dataElements.get (i);
 
-			grid.add (dataElement.getTitleFxNode (), 0, i);
-			grid.add (dataElement.getValueFxNode (), 1, i);
+			if (depPanel.getPageType () == DataElementPageType.GRID) {
+				grid.add (dataElement.getTitleFxNode (), 0, i);
+				grid.add (dataElement.getValueFxNode (), 1, i);
+			} else {
+				vbox.getChildren ().addAll (dataElement.getTitleFxNode (), dataElement.getValueFxNode ());
+			}
 		}
 
-		ScrollPane scrollPane = new ScrollPane (grid);
+		ScrollPane scrollPane;
+		if (depPanel.getPageType () == DataElementPageType.GRID) {
+			scrollPane = new ScrollPane (grid);
+		} else {
+			scrollPane = new ScrollPane (vbox);
+		}
 		scrollPane.setVbarPolicy (ScrollPane.ScrollBarPolicy.ALWAYS);
 		scrollPane.setHbarPolicy (ScrollPane.ScrollBarPolicy.AS_NEEDED);
 		scrollPane.setBorder (Border.EMPTY);
@@ -62,6 +73,6 @@ public class DataElementPagePanelView extends FacesPanelView {
 		FacesUtil.bindWidthHeight (vb, this.widthProperty (), this.heightProperty ());
 
 		this.getChildren ().add (vb);
-	}
 
+	}
 }

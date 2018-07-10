@@ -16,13 +16,19 @@ public abstract class DataElementPagePanel extends FacesPanel {
 
 	private DataElementPagePanelView view = null;
 
-	final DataElementSet dataElementList;
+	final DataElementSet dataElementSet;
 	private final String displayName;
+	private final DataElementPageType pageType;
 
 	public DataElementPagePanel (String displayName) {
+		this (displayName, null);
+	}
+
+	public DataElementPagePanel (String displayName, DataElementPageType pageType) {
 		super ();
 		this.displayName = displayName;
-		this.dataElementList = new DataElementSet ();
+		this.dataElementSet = new DataElementSet ();
+		this.pageType = (pageType == null ? DataElementPageType.GRID : pageType);
 	}
 
 	@Override
@@ -39,8 +45,12 @@ public abstract class DataElementPagePanel extends FacesPanel {
 		return view;
 	}
 
-	public DataElementSet getDataElementList () {
-		return dataElementList;
+	public DataElementPageType getPageType () {
+		return pageType;
+	}
+
+	public DataElementSet getDataElementSet () {
+		return dataElementSet;
 	}
 
 }
