@@ -129,6 +129,39 @@ public class DateTimeDataElement extends DataElement<LocalDateTime> {
 		}
 	};
 
+	public final ObjectProperty<Integer> currentValueSecondProperty = new ObjectPropertyBase<Integer> () {
+		@Override
+		public Integer get () {
+			return getCurrentValueProperty ().getValue ().getSecond ();
+		}
+
+		@Override
+		public void set (Integer v) {
+			LocalDateTime curr = getCurrentValueProperty ().getValue ();
+			int year = curr.get (ChronoField.YEAR);
+			int month = curr.get (ChronoField.MONTH_OF_YEAR);
+			int dayOfMonth = curr.get (ChronoField.DAY_OF_MONTH);
+			int hour = curr.get (ChronoField.HOUR_OF_DAY);
+			int minute = curr.get (ChronoField.MINUTE_OF_HOUR);
+
+			int second = v;
+
+			int nanoOfSecond = curr.get (ChronoField.NANO_OF_SECOND);
+
+			getCurrentValueProperty ().setValue (LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond));
+		}
+
+		@Override
+		public Object getBean () {
+			return null;
+		}
+
+		@Override
+		public String getName () {
+			return "";
+		}
+	};
+
 	public DateTimeDataElement (String elementTitle, String elementId, LocalDateTime defaultValue, DataElementPersistenceProvider persistenceProvider) {
 		super (elementTitle, elementId, LocalDateTime.class, defaultValue, persistenceProvider);
 	}
@@ -179,6 +212,29 @@ public class DateTimeDataElement extends DataElement<LocalDateTime> {
 	}
 
 	@Override
+	protected LocalDateTime displayedStringToValue (String str) {
+		return null; // As no parsing is needed anywhere
+	}
+
+	@Override
+	protected String valueToDisplayedString (LocalDateTime val) {
+		if (val == null) {
+			return "";
+		}
+
+		StringBuilder sb = new StringBuilder ();
+		sb.append (val.get (ChronoField.YEAR)).append ("-");
+		sb.append (val.get (ChronoField.MONTH_OF_YEAR)).append ("-");
+		sb.append (val.get (ChronoField.DAY_OF_MONTH)).append (" ");
+		sb.append (val.get (ChronoField.HOUR_OF_DAY)).append (":");
+		sb.append (val.get (ChronoField.MINUTE_OF_HOUR)).append (":");
+		sb.append (val.get (ChronoField.SECOND_OF_MINUTE)).append (".");
+		sb.append (val.get (ChronoField.NANO_OF_SECOND));
+
+		return sb.toString ();
+	}
+
+	@Override
 	public Node getValueFxNode () {
 		if (valueFxNode == null) {
 			TextField hourField = new TextField ();
@@ -209,10 +265,26 @@ public class DateTimeDataElement extends DataElement<LocalDateTime> {
 			});
 			minuteField.setPrefWidth (40.0);
 
+			TextField secondField = new TextField ();
+			secondField.textProperty ().bindBidirectional (currentValueSecondProperty, new StringConverter<Integer> () {
+				@Override
+				public String toString (Integer object) {
+					return String.valueOf (object);
+				}
+
+				@Override
+				public Integer fromString (String string) {
+					return Integer.parseInt (string);
+				}
+			});
+			secondField.setPrefWidth (40.0);
+
 			HBox hb = new HBox ();
 			hb.getChildren ().add (hourField);
 			hb.getChildren ().add (new Label (":"));
 			hb.getChildren ().add (minuteField);
+			hb.getChildren ().add (new Label (":"));
+			hb.getChildren ().add (secondField);
 
 			DatePicker datePicker = new DatePicker ();
 			datePicker.setConverter (new StringConverter<LocalDate> () {
