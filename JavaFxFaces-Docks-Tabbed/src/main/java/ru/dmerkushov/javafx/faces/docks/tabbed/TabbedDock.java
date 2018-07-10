@@ -3,12 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ru.dmerkushov.javafx.faces.docks.icontabbed;
+package ru.dmerkushov.javafx.faces.docks.tabbed;
 
 import com.sun.javafx.collections.TrackableObservableList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -16,13 +14,15 @@ import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
-import javafx.scene.layout.Pane;
 import ru.dmerkushov.javafx.faces.FacesDock;
 import static ru.dmerkushov.javafx.faces.FacesLogging.facesLoggerWrapper;
+import ru.dmerkushov.javafx.faces.FacesUtil;
 import ru.dmerkushov.javafx.faces.panels.FacesPanel;
 import ru.dmerkushov.javafx.faces.panels.FacesPanelView;
 import static ru.dmerkushov.javafx.faces.threads.FxThreadChecker.checkOnAppThread;
@@ -31,18 +31,16 @@ import static ru.dmerkushov.javafx.faces.threads.FxThreadChecker.checkOnAppThrea
  *
  * @author Dmitriy Merkushov <d.merkushov@gmail.com>
  */
-public class IconTabbedDock extends FacesDock {
+public class TabbedDock extends FacesDock {
 
 	UUID uuid;
 	ListProperty<FacesPanel> panelsList;
 	FacesPanel activePanel;
 	String displayName;
 	String toolTip;
-	IconTabbedDockView myView;
-	int iconWidth;
-	int iconHeight;
+	TabbedDockView myView;
 
-	public IconTabbedDock (UUID uuid, String displayName, String toolTip, int iconWidth, int iconHeight, FacesPanel... panels) {
+	public TabbedDock (UUID uuid, String displayName, String toolTip, FacesPanel... panels) {
 		super ();
 
 		Objects.requireNonNull (panels, "panels");
@@ -56,10 +54,7 @@ public class IconTabbedDock extends FacesDock {
 		this.displayName = (displayName != null ? displayName : "");
 		this.toolTip = (toolTip != null ? toolTip : "");
 
-		this.iconWidth = iconWidth;
-		this.iconHeight = iconHeight;
-
-		myView = new IconTabbedDockView ();
+		myView = new TabbedDockView (this);
 
 		this.panelsList = new SimpleListProperty<> (new TrackableObservableList<FacesPanel> () {
 			@Override
@@ -122,7 +117,7 @@ public class IconTabbedDock extends FacesDock {
 	@Override
 	public void removePanel (int panelIndex) {
 		if (panelsList.get (panelIndex).equals (activePanel)) {
-			facesLoggerWrapper.warning ("Attempt to remove the active panel: " + activePanel + " on dock " + IconTabbedDock.this);
+			facesLoggerWrapper.warning ("Attempt to remove the active panel: " + activePanel + " on dock " + TabbedDock.this);
 			return;
 		}
 
@@ -134,92 +129,76 @@ public class IconTabbedDock extends FacesDock {
 		return panelsList.contains (panel);
 	}
 
-	public class IconTabbedDockView extends FacesPanelView {
+	public class TabbedDockView extends FacesPanelView {
 
-		Map<FacesPanel, Pane> icons = new HashMap<> ();
+		final TabPane tabPane;
 
-		public IconTabbedDockView () {
-			super (IconTabbedDock.this);
+		public TabbedDockView (FacesPanel panel) {
+			super (panel);
+
+			tabPane = new TabPane ();
+
+			getChildren ().add (tabPane);
+
+			FacesUtil.bindWidthHeight (tabPane, this.widthProperty (), this.heightProperty ());
 		}
 
 		void panelListChanged (ListChangeListener.Change<FacesPanel> c) {
 			checkOnAppThread ();
 
+			ObservableList<Tab> tabs = tabPane.getTabs ();
+
 			while (c.next ()) {
 				c.getAddedSubList ().stream ().filter ((p) -> (p != null)).forEachOrdered (new Consumer<FacesPanel> () {
 					@Override
 					public void accept (FacesPanel panel) {
-						getChildren ().add (panel.getView ());
-						panel.getView ().setVisible (false);
-						ImageView iconView = new ImageView (panel.getIcon (iconWidth, iconHeight));
-						Pane iconPane = new Pane (iconView);
+						Tab tab = new Tab ();
+						tab.setContent (panel.getView ());
+						tab.setText (panel.getDisplayName ());
+						tab.setTooltip (new Tooltip (panel.getToolTip ()));
+						tabs.add (tab);
 
-						icons.put (panel, iconPane);
-						iconPane.setOnMouseClicked ((e) -> showPanel (panel));
-
-						Tooltip tooltip = new Tooltip (panel.getDisplayName () + "\n\n" + panel.getToolTip ());
-						Tooltip.install (iconPane, tooltip);
-
-						getChildren ().add (iconPane);
-
-						facesLoggerWrapper.finest ("Added panel " + panel + ", iconView " + iconView);
+						facesLoggerWrapper.finest ("Added panel " + panel);
 					}
 				});
 				c.getRemoved ().stream ().filter ((p) -> (p != null)).forEachOrdered ((panel) -> {
 					if (panel.equals (activePanel)) {
-						facesLoggerWrapper.warning ("Attempt to remove the active panel: " + activePanel + " on dock " + IconTabbedDock.this);
+						facesLoggerWrapper.warning ("Attempt to remove the active panel: " + activePanel + " on dock " + TabbedDock.this);
 						return;
 					}
 
-					getChildren ().remove (panel.getView ());
-					getChildren ().remove (icons.get (panel));
-
-					System.err.println ("Removed panel " + panel + ", iconView " + icons.get (panel));
-
-					icons.remove (panel);
+					Tab foundTab = null;
+					for (Tab tab : tabs) {
+						if (tab.getContent () == panel.getView ()) {
+							foundTab = tab;
+							break;
+						}
+					}
+					if (foundTab != null) {
+						tabs.remove (foundTab);
+					}
 				});
 			}
-			refreshView ();
 		}
 
-		private void refreshView () {
-			checkOnAppThread ();
+		void showPanel (FacesPanel panel) {
 
-			int iconIndex = 0;
-			for (FacesPanel panel : panelsList) {
-				if (panel == null) {
+			ObservableList<Tab> tabs = tabPane.getTabs ();
+
+			for (Tab tab : tabs) {
+				FacesPanelView tabView;
+				try {
+					tabView = (FacesPanelView) tab.getContent ();
+				} catch (ClassCastException ex) {
+					facesLoggerWrapper.warning ("Non-faces panel view in a tabbed dock: " + tab.getContent () + " on tab " + tab.getText (), ex);
 					continue;
 				}
-				Pane iconPane = icons.get (panel);
-
-				iconPane.layoutXProperty ().set (5.0);
-				iconPane.layoutYProperty ().set (iconIndex * (iconHeight + 5.0));
-
-				FacesPanelView panelView = panel.getView ();
-				panelView.layoutXProperty ().set (iconWidth + 10.0);
-				panelView.layoutYProperty ().set (0);
-				panelView.minWidthProperty ().bind (this.widthProperty ().subtract (iconWidth + 10.0));
-				panelView.maxWidthProperty ().bind (this.widthProperty ().subtract (iconWidth + 10.0));
-				panelView.minHeightProperty ().bind (this.heightProperty ());
-				panelView.maxHeightProperty ().bind (this.heightProperty ());
-
-				iconIndex++;
-			}
-		}
-
-		private void showPanel (FacesPanel toShow) {
-			checkOnAppThread ();
-
-			Objects.requireNonNull (toShow, "toShow");
-			if (!panelsList.contains (toShow)) {
-				throw new IllegalArgumentException ("Panel " + toShow + " is not on the panel list");
+				if (panel == tabView.getPanel ()) {
+					tabPane.selectionModelProperty ().get ().select (tab);
+					break;
+				}
 			}
 
-			if (activePanel != null && !toShow.equals (activePanel)) {
-				activePanel.getView ().setVisible (false);
-			}
-			toShow.getView ().setVisible (true);
-			activePanel = toShow;
 		}
 
 	}
