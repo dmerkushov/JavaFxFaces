@@ -7,7 +7,7 @@ package ru.dmerkushov.javafx.faces.data.dataelements.registry;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -43,9 +43,9 @@ public class DataElementRegistry {
 	}
 	////////////////////////////////////////////////////////////////////////////
 
-	private final Map<String, DataElement> dataElements = new HashMap<> ();
-	private final Map<UUID, ArrayList<DataElement>> pageDataElements = new HashMap<> ();
-	private final Map<DataElement, UUID> dataElementPages = new HashMap<> ();
+	private final Map<String, DataElement> dataElements = new LinkedHashMap<> ();
+	private final Map<UUID, ArrayList<DataElement>> pageDataElements = new LinkedHashMap<> ();
+	private final Map<DataElement, UUID> dataElementPages = new LinkedHashMap<> ();
 
 	public void registerDataElement (DataElement dataElement) {
 		registerDataElement (dataElement, null);
