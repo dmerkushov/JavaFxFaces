@@ -137,6 +137,7 @@ public class TabbedDock extends FacesDock {
 			super (panel);
 
 			tabPane = new TabPane ();
+			tabPane.tabClosingPolicyProperty ().set (TabPane.TabClosingPolicy.UNAVAILABLE);
 
 			getChildren ().add (tabPane);
 
