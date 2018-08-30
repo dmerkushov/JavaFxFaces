@@ -83,7 +83,7 @@ public class DataElementJsonSerializerRegistry {
 
 	public DataElement deserialize (JsonObject dataElementJson, DataElementPersistenceProvider persistenceProvider) throws ClassNotFoundException {
 		Objects.requireNonNull (dataElementJson, "dataElementJson");
-		Objects.requireNonNull (persistenceProvider, "persistenceProvider");
+//		Objects.requireNonNull (persistenceProvider, "persistenceProvider");
 
 		String className = dataElementJson.getString ("class", "");
 		if (className.equals ("")) {
@@ -107,7 +107,7 @@ public class DataElementJsonSerializerRegistry {
 
 	public DataElement deserialize (String dataElementJsonStr, DataElementPersistenceProvider persistenceProvider) throws ClassNotFoundException {
 		Objects.requireNonNull (dataElementJsonStr, "dataElementJsonStr");
-		Objects.requireNonNull (persistenceProvider, "persistenceProvider");
+//		Objects.requireNonNull (persistenceProvider, "persistenceProvider");
 
 		JsonObject json;
 		try {

@@ -154,7 +154,7 @@ public class DataElementJsonSerializerImpl<DE extends DataElement<DET>, DET> imp
 	@Override
 	public final DE deserialize (JsonObject json, DataElementPersistenceProvider persistenceProvider) {
 		Objects.requireNonNull (json, "json");
-		Objects.requireNonNull (persistenceProvider, "persistenceProvider");
+//		Objects.requireNonNull (persistenceProvider, "persistenceProvider");
 
 		Class[] constructorParameterClasses = new Class[constructorParameterNames.length];
 		Object[] constructorParameters = new Object[constructorParameterNames.length];
