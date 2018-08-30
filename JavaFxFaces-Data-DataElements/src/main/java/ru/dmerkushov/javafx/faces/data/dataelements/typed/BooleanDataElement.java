@@ -5,8 +5,11 @@
  */
 package ru.dmerkushov.javafx.faces.data.dataelements.typed;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
 import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializerImpl;
 import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
@@ -48,6 +51,29 @@ public class BooleanDataElement extends DataElement<Boolean> {
 		}
 
 		return valueFxNode;
+	}
+
+	public Node getValueViewFxNode () {
+		if (valueViewFxNode == null) {
+			Label label = new Label (
+					getCurrentValueProperty ().getValue ()
+					? java.util.ResourceBundle.getBundle ("ru.dmerkushov.javafx.faces.data.dataelements.Bundle").getString ("BOOLEANDE_YES")
+					: java.util.ResourceBundle.getBundle ("ru.dmerkushov.javafx.faces.data.dataelements.Bundle").getString ("BOOLEANDE_NO")
+			);
+			getCurrentValueProperty ().addListener (new ChangeListener<Boolean> () {
+				@Override
+				public void changed (ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+					label.textProperty ().setValue (
+							newValue
+									? java.util.ResourceBundle.getBundle ("ru.dmerkushov.javafx.faces.data.dataelements.Bundle").getString ("BOOLEANDE_YES")
+									: java.util.ResourceBundle.getBundle ("ru.dmerkushov.javafx.faces.data.dataelements.Bundle").getString ("BOOLEANDE_NO")
+					);
+				}
+			});
+			valueViewFxNode = label;
+		}
+
+		return valueViewFxNode;
 	}
 
 	public static class JsonSerializer extends DataElementJsonSerializerImpl<BooleanDataElement, Boolean> {
