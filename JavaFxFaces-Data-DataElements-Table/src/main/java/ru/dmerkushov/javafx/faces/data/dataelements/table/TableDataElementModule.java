@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ru.dmerkushov.javafxfaces.data.dataelements.table;
+package ru.dmerkushov.javafx.faces.data.dataelements.table;
 
 import java.util.Arrays;
 import java.util.Collection;

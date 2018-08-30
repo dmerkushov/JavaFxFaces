@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ru.dmerkushov.javafxfaces.data.dataelements.table;
+package ru.dmerkushov.javafx.faces.data.dataelements.table;
 
 import java.io.StringReader;
 import java.util.Objects;
@@ -21,6 +21,7 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
+import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializerRegistry;
 
 /**
  *
@@ -84,6 +85,12 @@ public final class TableData {
 	}
 
 	String toStoredString () {
+		JsonObjectBuilder job = toStoredJson ();
+
+		return job.build ().toString ();
+	}
+
+	JsonObjectBuilder toStoredJson () {
 		JsonObjectBuilder job = Json.createObjectBuilder ();
 
 		JsonObjectBuilder rpJob = Json.createObjectBuilder ();
@@ -103,14 +110,31 @@ public final class TableData {
 
 		job.add ("rowPattern", rpJob);
 
-		return job.build ().toString ();
+		ObservableList<TableDataRow> rows = getRows ();
+		JsonArrayBuilder rowsJab = Json.createArrayBuilder ();
+		for (TableDataRow tdr : rows) {
+			JsonArrayBuilder rowJab = Json.createArrayBuilder ();
+			for (DataElement de : tdr.dataElements) {
+				JsonObject deJob = DataElementJsonSerializerRegistry.getInstance ().serialize (de);
+				rowJab.add (deJob);
+			}
+			rowsJab.add (rowJab);
+		}
+		job.add ("rows", rowsJab);
+
+		return job;
 	}
 
 	static TableData fromStoredString (String str) throws ClassNotFoundException {
 		JsonReader jr = Json.createReader (new StringReader (str));
 		JsonObject jo = jr.readObject ();
 
-		JsonObject rpJo = jo.getJsonObject ("rowPattern");
+		return fromStoredJson (jo);
+	}
+
+	static TableData fromStoredJson (JsonObject json) throws ClassNotFoundException {
+
+		JsonObject rpJo = json.getJsonObject ("rowPattern");
 		JsonArray rpCt = rpJo.getJsonArray ("columnTitles");
 		JsonArray rpDc = rpJo.getJsonArray ("dataClasses");
 
@@ -128,6 +152,17 @@ public final class TableData {
 		RowPattern rp = new RowPattern (columnTitles, dataClasses);
 
 		TableData td = new TableData (rp);
+
+		JsonArray rowsJa = json.getJsonArray ("rows");
+		for (int i = 0; i < rowsJa.size (); i++) {
+			JsonArray rowJa = rowsJa.getJsonArray (i);
+			DataElement[] des = new DataElement[rowJa.size ()];
+			for (int j = 0; j < rowJa.size (); j++) {
+				des[j] = DataElementJsonSerializerRegistry.getInstance ().deserialize (rowJa.getJsonObject (j), null);
+			}
+			TableDataRow tdr = td.newRow (des);
+			td.getRows ().add (tdr);
+		}
 
 		return td;
 	}

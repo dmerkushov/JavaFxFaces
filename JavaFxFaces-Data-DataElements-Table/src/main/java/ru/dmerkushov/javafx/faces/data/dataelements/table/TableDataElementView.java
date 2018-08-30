@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ru.dmerkushov.javafxfaces.data.dataelements.table;
+package ru.dmerkushov.javafx.faces.data.dataelements.table;
 
 import java.util.Objects;
 import javafx.beans.property.Property;
@@ -18,7 +18,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Callback;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
-import ru.dmerkushov.javafxfaces.data.dataelements.table.TableData.TableDataRow;
+import ru.dmerkushov.javafx.faces.data.dataelements.table.TableData.TableDataRow;
 
 /**
  *
