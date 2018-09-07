@@ -9,10 +9,7 @@ import java.io.StringReader;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -31,31 +28,15 @@ public final class TableData {
 
 	private final RowPattern rp;
 	private final ObservableList<TableDataRow> rows = FXCollections.<TableDataRow>observableArrayList ();
-	private TableDataProperty tdp = null;
 	private SimpleObjectProperty<Callable<TableDataRow>> dataRowCreatorProperty = new SimpleObjectProperty<> (null);
 
-	public TableData (RowPattern rp) {
-		Objects.requireNonNull (rp, "rm");
+	public TableData (RowPattern rowPattern) {
+		Objects.requireNonNull (rowPattern, "rowPattern");
 
-		this.rp = rp;
-
-		rows.addListener (new ListChangeListener<TableDataRow> () {
-			@Override
-			public void onChanged (ListChangeListener.Change<? extends TableDataRow> c) {
-				getTableDataProperty ().valueChanged ();
-			}
-		});
+		this.rp = rowPattern;
 	}
 
-	public TableDataProperty getTableDataProperty () {
-		if (tdp == null) {
-			tdp = new TableDataProperty ();
-		}
-
-		return tdp;
-	}
-
-	public ObservableList<TableDataRow> getRows () {
+	ObservableList<TableDataRow> getRows () {
 		return rows;
 	}
 
@@ -168,18 +149,6 @@ public final class TableData {
 	}
 
 	////////////////////////////////////////////////////////////////////////////
-	public final class TableDataProperty extends SimpleObjectProperty<TableData> {
-
-		private TableDataProperty () {
-			super (TableData.this);
-		}
-
-		void valueChanged () {
-			this.fireValueChangedEvent ();
-		}
-	}
-
-	////////////////////////////////////////////////////////////////////////////
 	public final class TableDataRow {
 
 		DataElement[] dataElements;
@@ -206,25 +175,24 @@ public final class TableData {
 			return dataElements[index];
 		}
 
-		private ChangeListener cl = new ChangeListener () {
-			@Override
-			public void changed (ObservableValue observable, Object oldValue, Object newValue) {
-				TableData.this.tdp.valueChanged ();
-			}
-		};
-
-		void addListeners () {
-			for (DataElement dataElement : dataElements) {
-				dataElement.getCurrentValueProperty ().addListener (cl);
-			}
-		}
-
-		void removeListeners () {
-			for (DataElement dataElement : dataElements) {
-				dataElement.getCurrentValueProperty ().removeListener (cl);
-			}
-		}
-
+//		private ChangeListener cl = new ChangeListener () {
+//			@Override
+//			public void changed (ObservableValue observable, Object oldValue, Object newValue) {
+//				getRows ().valueChanged ();
+//			}
+//		};
+//
+//		void addListeners () {
+//			for (DataElement dataElement : dataElements) {
+//				dataElement.getCurrentValueProperty ().addListener (cl);
+//			}
+//		}
+//
+//		void removeListeners () {
+//			for (DataElement dataElement : dataElements) {
+//				dataElement.getCurrentValueProperty ().removeListener (cl);
+//			}
+//		}
 	}
 
 	////////////////////////////////////////////////////////////////////////////

@@ -11,6 +11,7 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.prefs.Preferences;
 import javafx.beans.property.Property;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
@@ -28,13 +29,13 @@ import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializ
 import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializerRegistry;
 import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
 import ru.dmerkushov.javafx.faces.data.dataelements.registry.DataElementRegistry;
+import ru.dmerkushov.javafx.faces.data.dataelements.table.TableData.RowPattern;
+import ru.dmerkushov.javafx.faces.data.dataelements.table.TableData.TableDataRow;
 import ru.dmerkushov.javafx.faces.data.dataelements.typed.DateTimeDataElement;
 import ru.dmerkushov.javafx.faces.data.dataelements.typed.IntegerRangeDataElement;
 import ru.dmerkushov.javafx.faces.data.dataelements.typed.StringDataElement;
 import ru.dmerkushov.javafx.faces.data.range.IntegerRange;
 import ru.dmerkushov.javafx.faces.panels.FacesPanels;
-import ru.dmerkushov.javafx.faces.data.dataelements.table.TableData.RowPattern;
-import ru.dmerkushov.javafx.faces.data.dataelements.table.TableData.TableDataRow;
 import ru.dmerkushov.prefconf.PrefConf;
 
 /**
@@ -44,14 +45,15 @@ import ru.dmerkushov.prefconf.PrefConf;
 public class TableDataElement extends DataElement<TableData> {
 
 	private Node view = null;
-	private TableData data;
+	private TableDataElementView tdeView;
+	private TableDataProperty currentValueProperty = null;
 
 	public TableDataElement (String elementTitle, String elementId, TableData defaultData, DataElementPersistenceProvider persistenceProvider) {
 		super (elementTitle, elementId, TableData.class, defaultData, persistenceProvider);
 
 		Objects.requireNonNull (defaultData, "defaultData");
 
-		this.data = defaultData;
+		currentValueProperty = new TableDataProperty (defaultData);
 	}
 
 	@Override
@@ -86,14 +88,14 @@ public class TableDataElement extends DataElement<TableData> {
 			Button addBtn = new Button (java.util.ResourceBundle.getBundle ("ru/dmerkushov/javafxfaces/data/dataelements/table/Bundle").getString ("BTN_ADDROW_CAPTION"));
 			addBtn.setOnAction ((ActionEvent event) -> {
 
-				TableDataRow tdr = data.createNewRow ();
+				TableDataRow tdr = getCurrentValueProperty ().getValue ().createNewRow ();
 
 				if (tdr != null) {
-					data.getRows ().add (tdr);
+					getCurrentValueProperty ().getValue ().getRows ().add (tdr);
 				}
 			});
 
-			addBtn.visibleProperty ().bind (data.getDataRowCreatorProperty ().isNotNull ());
+			addBtn.visibleProperty ().bind (getCurrentValueProperty ().getValue ().getDataRowCreatorProperty ().isNotNull ());
 			addBtn.getStyleClass ().add ("TableDataElement_addBtn");
 			addBtn.getStyleClass ().add ("TableDataElement_" + this.elementId + "_addBtn");
 
@@ -107,20 +109,18 @@ public class TableDataElement extends DataElement<TableData> {
 		return view;
 	}
 
-	private TableDataElementView tdev;
-
 	public TableDataElementView getTableDataElementView () {
-		if (tdev == null) {
-			tdev = new TableDataElementView (this);
-			tdev.getStyleClass ().add ("TableDataElement_table");
-			tdev.getStyleClass ().add ("TableDataElement_" + this.elementId + "_table");
+		if (tdeView == null) {
+			tdeView = new TableDataElementView (this);
+			tdeView.getStyleClass ().add ("TableDataElement_table");
+			tdeView.getStyleClass ().add ("TableDataElement_" + this.elementId + "_table");
 		}
-		return tdev;
+		return tdeView;
 	}
 
 	@Override
 	public Property<TableData> getCurrentValueProperty () {
-		return data.getTableDataProperty ();
+		return currentValueProperty;
 	}
 
 	private UUID panelInstanceUuid = UUID.randomUUID ();
@@ -132,6 +132,10 @@ public class TableDataElement extends DataElement<TableData> {
 
 	public void setPanelInstanceUuid (UUID panelInstanceUuid) {
 		this.panelInstanceUuid = panelInstanceUuid;
+	}
+
+	public ObservableList<TableDataRow> getRows () {
+		return getCurrentValueProperty ().getValue ().getRows ();
 	}
 
 	/**
