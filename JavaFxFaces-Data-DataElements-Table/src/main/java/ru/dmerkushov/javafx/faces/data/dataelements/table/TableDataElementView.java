@@ -6,6 +6,7 @@
 package ru.dmerkushov.javafx.faces.data.dataelements.table;
 
 import java.util.Objects;
+import javafx.application.Platform;
 import javafx.beans.property.Property;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
@@ -18,7 +19,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Callback;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
-import ru.dmerkushov.javafx.faces.data.dataelements.table.TableData.TableDataRow;
 
 /**
  *
@@ -40,7 +40,7 @@ public class TableDataElementView extends TableView {
 		this.tdp = tde.getCurrentValueProperty ();
 
 		TableData td = tdp.getValue ();
-		TableData.RowPattern rp = td.getRowPattern ();
+		TableDataRowPattern rp = td.getRowPattern ();
 
 		TableColumn[] tableColumns = new TableColumn[rp.columnTitles.length];
 
@@ -55,12 +55,12 @@ public class TableDataElementView extends TableView {
 
 		this.setEditable (true);
 
-		this.setItems (tdp.getValue ().getRows ());
+		this.setItems (tde.getRows ());
 
 		getColumns ().addAll (tableColumns);
 	}
 
-	public class TableDataElementCellValueFactory implements Callback<CellDataFeatures<TableData.TableDataRow, String>, ObservableValue<String>> {
+	public class TableDataElementCellValueFactory implements Callback<CellDataFeatures<TableDataRow, String>, ObservableValue<String>> {
 
 		int columnIndex;
 
@@ -70,18 +70,18 @@ public class TableDataElementView extends TableView {
 
 		@Override
 		public ObservableValue<String> call (CellDataFeatures<TableDataRow, String> param) {
-			return param.getValue ().dataElements[columnIndex].getCurrentValueStoredStringProperty ();
+			return param.getValue ().getDataElement (columnIndex).getCurrentValueStoredStringProperty ();
 		}
 	}
 
 	public class TableDataElementCell extends TableCell {
 
-		int columnIndex;
+		private int _columnIndex;
 
 		public TableDataElementCell (int columnIndex) {
 			super ();
 
-			this.columnIndex = columnIndex;
+			_columnIndex = columnIndex;
 			this.editingProperty ();
 
 			setOnMouseClicked (new EventHandler<MouseEvent> () {
@@ -133,19 +133,27 @@ public class TableDataElementView extends TableView {
 
 			int rowIndex = row.getIndex ();
 
-			TableData td = tdp.getValue ();
-			TableData.TableDataRow tdr;
+			TableDataRow tdr;
 			try {
-				tdr = td.getRows ().get (rowIndex);
+				tdr = tde.getRows ().get (rowIndex);
 			} catch (IndexOutOfBoundsException ex) {
 				setText (null);
 				setGraphic (null);
 				return;
 			}
 
-			DataElement de = tdr.dataElements[columnIndex];
+			DataElement de = tdr.getDataElement (_columnIndex);
 
-			Node view = isEditing () ? de.getValueFxNode () : de.getValueViewFxNode ();
+			Node view;
+
+			if (isEditing ()) {
+				view = de.getValueFxNode ();
+				Platform.runLater (() -> {
+					view.requestFocus ();
+				});
+			} else {
+				view = de.getValueViewFxNode ();
+			}
 
 			setGraphic (view);
 		}
