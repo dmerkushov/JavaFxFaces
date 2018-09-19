@@ -23,13 +23,13 @@ import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersisten
  */
 public class DurationDataElement extends DataElement<Duration> {
 
-	long days;
-	long hours;
-	long minutes;
+	private long days;
+	private long hours;
+	private long minutes;
 
-	TextField daysField;
-	TextField hoursField;
-	TextField minutesField;
+	private TextField daysField;
+	private TextField hoursField;
+	private TextField minutesField;
 
 	public DurationDataElement (String elementTitle, String elementId, Duration defaultValue, DataElementPersistenceProvider persistenceProvider) {
 		super (
@@ -97,7 +97,7 @@ public class DurationDataElement extends DataElement<Duration> {
 					if (realNewVal.equals ("")) {
 						realNewVal = "0";
 					}
-					getCurrentValueProperty ().setValue (
+					getCurrentValueProperty ().updateValue (
 							getCurrentValueProperty ().getValue ()
 									.minus (Duration.ofDays (getCurrentValueProperty ().getValue ().toDays ()))
 									.plus (Duration.ofDays (Long.parseLong (realNewVal)))
@@ -113,7 +113,7 @@ public class DurationDataElement extends DataElement<Duration> {
 					if (realNewVal.equals ("")) {
 						realNewVal = "0";
 					}
-					getCurrentValueProperty ().setValue (
+					getCurrentValueProperty ().updateValue (
 							getCurrentValueProperty ().getValue ()
 									.minus (Duration.ofHours (getCurrentValueProperty ().getValue ().toHours () % 24))
 									.plus (Duration.ofHours (Long.parseLong (realNewVal)))
@@ -129,7 +129,7 @@ public class DurationDataElement extends DataElement<Duration> {
 					if (realNewVal.equals ("")) {
 						realNewVal = "0";
 					}
-					getCurrentValueProperty ().setValue (
+					getCurrentValueProperty ().updateValue (
 							getCurrentValueProperty ().getValue ()
 									.minus (Duration.ofMinutes (getCurrentValueProperty ().getValue ().toMinutes () % 60))
 									.plus (Duration.ofMinutes (Long.parseLong (realNewVal)))
@@ -164,7 +164,7 @@ public class DurationDataElement extends DataElement<Duration> {
 		hours = Long.parseLong (hoursField.textProperty ().get ());
 		days = Long.parseLong (daysField.textProperty ().get ());
 
-		getCurrentValueProperty ().setValue (Duration.ofDays (days).plus (Duration.ofHours (hours)).plus (Duration.ofMinutes (minutes)));
+		getCurrentValueProperty ().updateValue (Duration.ofDays (days).plus (Duration.ofHours (hours)).plus (Duration.ofMinutes (minutes)));
 	}
 
 	private void showNewValues () {
