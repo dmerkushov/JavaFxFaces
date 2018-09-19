@@ -49,7 +49,7 @@ public class DateTimeDataElement extends DataElement<LocalDateTime> {
 			int second = curr.get (ChronoField.SECOND_OF_MINUTE);
 			int nanoOfSecond = curr.get (ChronoField.NANO_OF_SECOND);
 
-			getCurrentValueProperty ().setValue (LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond));
+			getCurrentValueProperty ().updateValue (LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond));
 		}
 
 		@Override
@@ -82,7 +82,7 @@ public class DateTimeDataElement extends DataElement<LocalDateTime> {
 			int second = curr.get (ChronoField.SECOND_OF_MINUTE);
 			int nanoOfSecond = curr.get (ChronoField.NANO_OF_SECOND);
 
-			getCurrentValueProperty ().setValue (LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond));
+			getCurrentValueProperty ().updateValue (LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond));
 		}
 
 		@Override
@@ -115,7 +115,7 @@ public class DateTimeDataElement extends DataElement<LocalDateTime> {
 			int second = curr.get (ChronoField.SECOND_OF_MINUTE);
 			int nanoOfSecond = curr.get (ChronoField.NANO_OF_SECOND);
 
-			getCurrentValueProperty ().setValue (LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond));
+			getCurrentValueProperty ().updateValue (LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond));
 		}
 
 		@Override
@@ -148,7 +148,7 @@ public class DateTimeDataElement extends DataElement<LocalDateTime> {
 
 			int nanoOfSecond = curr.get (ChronoField.NANO_OF_SECOND);
 
-			getCurrentValueProperty ().setValue (LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond));
+			getCurrentValueProperty ().updateValue (LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond));
 		}
 
 		@Override

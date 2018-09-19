@@ -47,7 +47,7 @@ public class DateTimeDataElementJsonSerializerTest {
 		};
 
 		DateTimeDataElement sde = new DateTimeDataElement (title, id, defaultValue, pp);
-		sde.getCurrentValueProperty ().setValue (currentValue);
+		sde.getCurrentValueProperty ().updateValue (currentValue);
 
 		System.out.println ("Original - element type: " + sde.getClass ().getCanonicalName ());
 		System.out.println ("Original - title: " + sde.elementTitle);

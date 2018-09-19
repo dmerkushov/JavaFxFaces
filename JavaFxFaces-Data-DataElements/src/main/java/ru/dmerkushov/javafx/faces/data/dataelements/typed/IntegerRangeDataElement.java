@@ -42,13 +42,13 @@ public class IntegerRangeDataElement extends DataElement<IntegerRange> {
 			IntegerRange currentVal = getCurrentValueProperty ().getValue ();
 			int currentMax = currentVal.getMax ();
 			IntegerRange newVal = new IntegerRange ((Integer) newValue, currentMax, currentVal.minIsBest);
-			getCurrentValueProperty ().setValue (newVal);
+			getCurrentValueProperty ().updateValue (newVal);
 		});
 		maxValueProperty.addListener ((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
 			IntegerRange currentVal = getCurrentValueProperty ().getValue ();
 			int currentMin = currentVal.getMin ();
 			IntegerRange newVal = new IntegerRange ((Integer) newValue, currentMin, currentVal.minIsBest);
-			getCurrentValueProperty ().setValue (newVal);
+			getCurrentValueProperty ().updateValue (newVal);
 		});
 
 		if (this.defaultValue.minIsBest) {

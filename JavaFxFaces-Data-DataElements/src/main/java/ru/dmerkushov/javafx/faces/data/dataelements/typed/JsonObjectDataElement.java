@@ -76,7 +76,7 @@ public class JsonObjectDataElement extends DataElement<JsonObject> {
 			JsonObjectDataElement jode = new JsonObjectDataElement (elementTitle, elementId, defaultValue, persistenceProvider);
 
 			JsonObject currentValue = json.getJsonObject ("currentValue");
-			jode.getCurrentValueProperty ().setValue (currentValue);
+			jode.getCurrentValueProperty ().updateValue (currentValue);
 
 			return jode;
 		}

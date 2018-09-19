@@ -77,7 +77,7 @@ public class JsonArrayDataElement extends DataElement<JsonArray> {
 			JsonArrayDataElement jade = new JsonArrayDataElement (elementTitle, elementId, defaultValue, persistenceProvider);
 
 			JsonArray currentValue = json.getJsonArray ("currentValue");
-			jade.getCurrentValueProperty ().setValue (currentValue);
+			jade.getCurrentValueProperty ().updateValue (currentValue);
 
 			return jade;
 		}

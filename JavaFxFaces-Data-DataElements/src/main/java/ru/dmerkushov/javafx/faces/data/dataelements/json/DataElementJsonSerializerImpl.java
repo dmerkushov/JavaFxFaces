@@ -198,7 +198,7 @@ public class DataElementJsonSerializerImpl<DE extends DataElement<DET>, DET> imp
 		}
 
 		DET value = stringToValue (json.getString ("value"));
-		de.getCurrentValueProperty ().setValue (value);
+		de.getCurrentValueProperty ().updateValue (value);
 
 		return de;
 	}

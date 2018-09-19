@@ -9,7 +9,6 @@ import java.util.Objects;
 import java.util.UUID;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -56,7 +55,7 @@ public abstract class DataElement<T> extends FacesPanel {
 	protected Node valueViewFxNode;
 	protected Node titleFxNode;
 
-	private ObjectProperty<T> currentValueProperty;
+	private DataElementValueProperty<T> currentValueProperty;
 	private ObjectProperty<String> currentValueStoredStringProperty;
 	private ObjectProperty<String> currentValueDisplayedStringProperty;
 
@@ -123,9 +122,9 @@ public abstract class DataElement<T> extends FacesPanel {
 	 *
 	 * @return
 	 */
-	public Property<T> getCurrentValueProperty () {
+	public DataElementValueProperty<T> getCurrentValueProperty () {
 		if (currentValueProperty == null) {
-			this.currentValueProperty = new SimpleObjectProperty<> (this.defaultValue);
+			this.currentValueProperty = new DataElementValueProperty<> (this.defaultValue);
 		}
 		return currentValueProperty;
 	}
