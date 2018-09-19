@@ -6,13 +6,12 @@
 package ru.dmerkushov.javafx.faces.data.dataelements.table;
 
 import javax.json.JsonObject;
-import ru.dmerkushov.javafx.faces.data.dataelements.table.TableData.TableDataRow;
 
 /**
  *
  * @author dmerkushov
  */
-public interface RowCreator {
+public interface TableDataRowCreator {
 
 	TableDataRow createNewRow (TableData tableData);
 

@@ -10,7 +10,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.prefs.Preferences;
-import javafx.beans.property.Property;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -25,12 +24,11 @@ import javax.json.JsonReader;
 import ru.dmerkushov.javafx.faces.FacesConfiguration;
 import ru.dmerkushov.javafx.faces.FacesMain;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
+import ru.dmerkushov.javafx.faces.data.dataelements.DataElementValueProperty;
 import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializer;
 import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializerRegistry;
 import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
 import ru.dmerkushov.javafx.faces.data.dataelements.registry.DataElementRegistry;
-import ru.dmerkushov.javafx.faces.data.dataelements.table.TableData.RowPattern;
-import ru.dmerkushov.javafx.faces.data.dataelements.table.TableData.TableDataRow;
 import ru.dmerkushov.javafx.faces.data.dataelements.typed.DateTimeDataElement;
 import ru.dmerkushov.javafx.faces.data.dataelements.typed.IntegerRangeDataElement;
 import ru.dmerkushov.javafx.faces.data.dataelements.typed.StringDataElement;
@@ -88,11 +86,24 @@ public class TableDataElement extends DataElement<TableData> {
 			Button addBtn = new Button (java.util.ResourceBundle.getBundle ("ru/dmerkushov/javafxfaces/data/dataelements/table/Bundle").getString ("BTN_ADDROW_CAPTION"));
 			addBtn.setOnAction ((ActionEvent event) -> {
 
-				TableDataRow tdr = getCurrentValueProperty ().getValue ().createNewRow ();
+				Callable<TableDataRow> dataRowCreator = getCurrentValueProperty ().getValue ().getDataRowCreatorProperty ().get ();
 
-				if (tdr != null) {
-					getCurrentValueProperty ().getValue ().getRows ().add (tdr);
+				if (dataRowCreator == null) {
+					return;
 				}
+
+				TableDataRow tdr;
+				try {
+					tdr = dataRowCreator.call ();
+				} catch (Exception ex) {
+					throw new TableDataElementException ("Exception when calling a data row creator", ex);
+				}
+
+				if (tdr == null) {
+					return;
+				}
+
+				getRows ().add (tdr);
 			});
 
 			addBtn.visibleProperty ().bind (getCurrentValueProperty ().getValue ().getDataRowCreatorProperty ().isNotNull ());
@@ -119,7 +130,7 @@ public class TableDataElement extends DataElement<TableData> {
 	}
 
 	@Override
-	public Property<TableData> getCurrentValueProperty () {
+	public DataElementValueProperty<TableData> getCurrentValueProperty () {
 		return currentValueProperty;
 	}
 
@@ -152,7 +163,7 @@ public class TableDataElement extends DataElement<TableData> {
 		final TableDataElement tde = new TableDataElement (
 				"titole",
 				"iid",
-				new TableData (new RowPattern (new String[]{"Column 1", "Column 2"}, new Class[]{StringDataElement.class, DataElement.class})),
+				new TableData (new TableDataRowPattern (new String[]{"Column 1", "Column 2"}, new Class[]{StringDataElement.class, DataElement.class})),
 				null);
 
 		tde.setPanelInstanceUuid (mainPanelUuid);
@@ -163,12 +174,12 @@ public class TableDataElement extends DataElement<TableData> {
 			@Override
 			public TableDataRow call () throws Exception {
 				StringDataElement newSde1 = new StringDataElement ("title", "id", null);
-				newSde1.getCurrentValueProperty ().setValue ("" + Math.random ());
+				newSde1.getCurrentValueProperty ().updateValue ("" + Math.random ());
 
 				StringDataElement newSde2 = new StringDataElement ("title", "id", null);
-				newSde2.getCurrentValueProperty ().setValue ("" + Math.random ());
+				newSde2.getCurrentValueProperty ().updateValue ("" + Math.random ());
 
-				return tableData.newRow (newSde1, newSde2);
+				return tableData.prepareRow (newSde1, newSde2);
 			}
 		});
 
@@ -182,8 +193,8 @@ public class TableDataElement extends DataElement<TableData> {
 
 		DataElement de22 = new DateTimeDataElement ("title", "id", null);
 
-		tableData.getRows ().add (tableData.newRow (de11, de12));
-		tableData.getRows ().add (tableData.newRow (de21, de22));
+		tableData.getRows ().add (tableData.prepareRow (de11, de12));
+		tableData.getRows ().add (tableData.prepareRow (de21, de22));
 
 		FacesPanels.getInstance ().registerPanel (tde);
 
@@ -205,7 +216,7 @@ public class TableDataElement extends DataElement<TableData> {
 			primaryStage.onHidingProperty ().set (new EventHandler<WindowEvent> () {
 				@Override
 				public void handle (WindowEvent event) {
-					System.out.println (DataElementJsonSerializerRegistry.getInstance ().serialize (tde));
+					System.out.println (tde.getCurrentValueStoredStringProperty ().getValue ());
 				}
 			});
 		});

@@ -26,11 +26,11 @@ import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializ
  */
 public final class TableData {
 
-	private final RowPattern rp;
+	private final TableDataRowPattern rp;
 	private final ObservableList<TableDataRow> rows = FXCollections.<TableDataRow>observableArrayList ();
 	private SimpleObjectProperty<Callable<TableDataRow>> dataRowCreatorProperty = new SimpleObjectProperty<> (null);
 
-	public TableData (RowPattern rowPattern) {
+	public TableData (TableDataRowPattern rowPattern) {
 		Objects.requireNonNull (rowPattern, "rowPattern");
 
 		this.rp = rowPattern;
@@ -40,25 +40,12 @@ public final class TableData {
 		return rows;
 	}
 
-	public RowPattern getRowPattern () {
+	public TableDataRowPattern getRowPattern () {
 		return rp;
 	}
 
-	public TableDataRow newRow (DataElement... dataElements) {
-		return new TableDataRow (dataElements);
-	}
-
-	public TableDataRow createNewRow () {
-
-		if (dataRowCreatorProperty.get () == null) {
-			return null;
-		}
-
-		try {
-			return dataRowCreatorProperty.get ().call ();
-		} catch (Exception ex) {
-			throw new TableDataElementException (ex);
-		}
+	public TableDataRow prepareRow (DataElement... dataElements) {
+		return new TableDataRow (this, dataElements);
 	}
 
 	public SimpleObjectProperty<Callable<TableDataRow>> getDataRowCreatorProperty () {
@@ -95,10 +82,14 @@ public final class TableData {
 		JsonArrayBuilder rowsJab = Json.createArrayBuilder ();
 		for (TableDataRow tdr : rows) {
 			JsonArrayBuilder rowJab = Json.createArrayBuilder ();
-			for (DataElement de : tdr.dataElements) {
+
+			int dataElementCount = tdr.getDataElementCount ();
+			for (int i = 0; i < dataElementCount; i++) {
+				DataElement de = tdr.getDataElement (i);
 				JsonObject deJob = DataElementJsonSerializerRegistry.getInstance ().serialize (de);
 				rowJab.add (deJob);
 			}
+
 			rowsJab.add (rowJab);
 		}
 		job.add ("rows", rowsJab);
@@ -130,7 +121,7 @@ public final class TableData {
 			dataClasses[i] = (Class<DataElement>) Class.forName (rpDc.getString (i));
 		}
 
-		RowPattern rp = new RowPattern (columnTitles, dataClasses);
+		TableDataRowPattern rp = new TableDataRowPattern (columnTitles, dataClasses);
 
 		TableData td = new TableData (rp);
 
@@ -141,87 +132,10 @@ public final class TableData {
 			for (int j = 0; j < rowJa.size (); j++) {
 				des[j] = DataElementJsonSerializerRegistry.getInstance ().deserialize (rowJa.getJsonObject (j), null);
 			}
-			TableDataRow tdr = td.newRow (des);
+			TableDataRow tdr = td.prepareRow (des);
 			td.getRows ().add (tdr);
 		}
 
 		return td;
 	}
-
-	////////////////////////////////////////////////////////////////////////////
-	public final class TableDataRow {
-
-		DataElement[] dataElements;
-
-		private TableDataRow (DataElement... dataElements) {
-			Objects.requireNonNull (dataElements, "dataElements");
-
-			if (dataElements.length != TableData.this.rp.dataClasses.length) {
-				throw new IllegalArgumentException ("Data element list for table row must have the same length as the row model: " + TableData.this.rp.dataClasses.length + ", but is " + dataElements.length);
-			}
-
-			for (int i = 0; i < dataElements.length; i++) {
-				Objects.requireNonNull (dataElements[i], "dataElements[" + i + "]");
-
-				if (!TableData.this.rp.dataClasses[i].isAssignableFrom (dataElements[i].getClass ())) {
-					throw new IllegalArgumentException ("Data element class in position " + i + " must be assignable to " + TableData.this.rp.dataClasses[i].getCanonicalName () + ", but is " + dataElements[i].getClass ().getCanonicalName ());
-				}
-			}
-
-			this.dataElements = dataElements;
-		}
-
-		public DataElement getDataElement (int index) {
-			return dataElements[index];
-		}
-
-//		private ChangeListener cl = new ChangeListener () {
-//			@Override
-//			public void changed (ObservableValue observable, Object oldValue, Object newValue) {
-//				getRows ().valueChanged ();
-//			}
-//		};
-//
-//		void addListeners () {
-//			for (DataElement dataElement : dataElements) {
-//				dataElement.getCurrentValueProperty ().addListener (cl);
-//			}
-//		}
-//
-//		void removeListeners () {
-//			for (DataElement dataElement : dataElements) {
-//				dataElement.getCurrentValueProperty ().removeListener (cl);
-//			}
-//		}
-	}
-
-	////////////////////////////////////////////////////////////////////////////
-	public static final class RowPattern {
-
-		public final Class<DataElement>[] dataClasses;
-		public final String[] columnTitles;
-
-		public RowPattern (String[] columnTitles, Class<DataElement>[] dataClasses) {
-			Objects.requireNonNull (columnTitles, "columnTitles");
-			Objects.requireNonNull (dataClasses, "dataClasses");
-
-			if (columnTitles.length != dataClasses.length) {
-				throw new IllegalArgumentException ("Column title list length (" + columnTitles.length + ") does not match the data classes list length (" + dataClasses.length + ")");
-			}
-			if (dataClasses.length == 0) {
-				throw new IllegalArgumentException ("Empty class list defined for table row model");
-			}
-
-			this.dataClasses = new Class[dataClasses.length];
-			this.columnTitles = new String[columnTitles.length];
-
-			for (int i = 0; i < dataClasses.length; i++) {
-				Objects.requireNonNull (dataClasses[i], "dataClasses[" + i + "]");
-				this.dataClasses[i] = dataClasses[i];
-
-				this.columnTitles[i] = columnTitles[i] != null ? columnTitles[i] : "";
-			}
-		}
-	}
-
 }
