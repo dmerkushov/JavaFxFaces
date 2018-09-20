@@ -216,7 +216,7 @@ public class TableDataElement extends DataElement<TableData> {
 			primaryStage.onHidingProperty ().set (new EventHandler<WindowEvent> () {
 				@Override
 				public void handle (WindowEvent event) {
-					System.out.println (tde.getCurrentValueStoredStringProperty ().getValue ());
+					System.out.println (tde.valueToStoredString (tde.getCurrentValueProperty ().getValue ()));
 				}
 			});
 		});

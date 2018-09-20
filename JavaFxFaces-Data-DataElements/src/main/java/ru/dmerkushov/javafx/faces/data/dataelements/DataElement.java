@@ -56,7 +56,6 @@ public abstract class DataElement<T> extends FacesPanel {
 	protected Node titleFxNode;
 
 	private DataElementValueProperty<T> currentValueProperty;
-	private ObjectProperty<String> currentValueStoredStringProperty;
 	private ObjectProperty<String> currentValueDisplayedStringProperty;
 
 	/**
@@ -127,31 +126,6 @@ public abstract class DataElement<T> extends FacesPanel {
 			this.currentValueProperty = new DataElementValueProperty<> (this.defaultValue);
 		}
 		return currentValueProperty;
-	}
-
-	/**
-	 * Get the property that keeps the current value of this data element in the
-	 * form for the persistence provider
-	 *
-	 * @return
-	 */
-	public ObjectProperty<String> getCurrentValueStoredStringProperty () {
-		if (currentValueStoredStringProperty == null) {
-			this.currentValueStoredStringProperty = new SimpleObjectProperty<> ();
-			Bindings.bindBidirectional (currentValueStoredStringProperty, getCurrentValueProperty (), new StringConverter<T> () {
-				@Override
-				public String toString (T object) {
-					return valueToStoredString (object);
-				}
-
-				@Override
-				public T fromString (String string) {
-					return storedStringToValue (string);
-				}
-			}
-			);
-		}
-		return currentValueStoredStringProperty;
 	}
 
 	/**

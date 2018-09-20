@@ -7,7 +7,9 @@ package ru.dmerkushov.javafx.faces.data.dataelements.table;
 
 import java.util.Objects;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
@@ -18,6 +20,7 @@ import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Callback;
+import javafx.util.StringConverter;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
 
 /**
@@ -70,7 +73,23 @@ public class TableDataElementView extends TableView {
 
 		@Override
 		public ObservableValue<String> call (CellDataFeatures<TableDataRow, String> param) {
-			return param.getValue ().getDataElement (columnIndex).getCurrentValueStoredStringProperty ();
+			DataElement de = param.getValue ().getDataElement (columnIndex);
+
+			SimpleObjectProperty<String> prop = new SimpleObjectProperty<> ();
+			Bindings.bindBidirectional (prop, de.getCurrentValueProperty (), new StringConverter () {
+				@Override
+				public String toString (Object object) {
+					return de.valueToStoredString (object);
+				}
+
+				@Override
+				public Object fromString (String string) {
+					return de.storedStringToValue (string);
+				}
+			}
+			);
+
+			return prop;
 		}
 	}
 
