@@ -1,0 +1,98 @@
+{
+	"tableData": {
+		"rowPattern": {
+			"columnTitles": ["Название", "Количество", "Гусеничная?"],
+			"dataClasses": ["ru.dmerkushov.javafx.faces.data.dataelements.typed.StringDataElement", "ru.dmerkushov.javafx.faces.data.dataelements.typed.IntegerDataElement", "ru.dmerkushov.javafx.faces.data.dataelements.typed.BooleanDataElement"]
+		},
+		"rows": [[{
+					"defaultValue": "",
+					"value": "Шевроле Тахо",
+					"valueType": "java.lang.String",
+					"elementId": "",
+					"elementTitle": "",
+					"class": "ru.dmerkushov.javafx.faces.data.dataelements.typed.StringDataElement"
+				}, {
+					"defaultValue": "1",
+					"value": "3",
+					"valueType": "java.lang.Integer",
+					"elementId": "",
+					"elementTitle": "",
+					"class": "ru.dmerkushov.javafx.faces.data.dataelements.typed.IntegerDataElement"
+				}, {
+					"defaultValue": "false",
+					"value": "false",
+					"valueType": "java.lang.Boolean",
+					"elementId": "",
+					"elementTitle": "",
+					"class": "ru.dmerkushov.javafx.faces.data.dataelements.typed.BooleanDataElement"
+				}], [{
+					"defaultValue": "",
+					"value": "Rolls Royce",
+					"valueType": "java.lang.String",
+					"elementId": "",
+					"elementTitle": "",
+					"class": "ru.dmerkushov.javafx.faces.data.dataelements.typed.StringDataElement"
+				}, {
+					"defaultValue": "1",
+					"value": "1",
+					"valueType": "java.lang.Integer",
+					"elementId": "",
+					"elementTitle": "",
+					"class": "ru.dmerkushov.javafx.faces.data.dataelements.typed.IntegerDataElement"
+				}, {
+					"defaultValue": "false",
+					"value": "false",
+					"valueType": "java.lang.Boolean",
+					"elementId": "",
+					"elementTitle": "",
+					"class": "ru.dmerkushov.javafx.faces.data.dataelements.typed.BooleanDataElement"
+				}], [{
+					"defaultValue": "",
+					"value": "Ниссан Альмера",
+					"valueType": "java.lang.String",
+					"elementId": "",
+					"elementTitle": "",
+					"class": "ru.dmerkushov.javafx.faces.data.dataelements.typed.StringDataElement"
+				}, {
+					"defaultValue": "1",
+					"value": "1",
+					"valueType": "java.lang.Integer",
+					"elementId": "",
+					"elementTitle": "",
+					"class": "ru.dmerkushov.javafx.faces.data.dataelements.typed.IntegerDataElement"
+				}, {
+					"defaultValue": "false",
+					"value": "false",
+					"valueType": "java.lang.Boolean",
+					"elementId": "",
+					"elementTitle": "",
+					"class": "ru.dmerkushov.javafx.faces.data.dataelements.typed.BooleanDataElement"
+				}], [{
+					"defaultValue": "",
+					"value": "kasdfghka",
+					"valueType": "java.lang.String",
+					"elementId": "",
+					"elementTitle": "",
+					"class": "ru.dmerkushov.javafx.faces.data.dataelements.typed.StringDataElement"
+				}, {
+					"defaultValue": "1",
+					"value": "1",
+					"valueType": "java.lang.Integer",
+					"elementId": "",
+					"elementTitle": "",
+					"class": "ru.dmerkushov.javafx.faces.data.dataelements.typed.IntegerDataElement"
+				}, {
+					"defaultValue": "false",
+					"value": "false",
+					"valueType": "java.lang.Boolean",
+					"elementId": "",
+					"elementTitle": "",
+					"class": "ru.dmerkushov.javafx.faces.data.dataelements.typed.BooleanDataElement"
+				}]]
+	},
+	"tableView": {
+		"columnWidth": [213.228515625, 99.955078125, 106.58203125, 88.7763671875]
+	},
+	"elementTitle": "Состав техники",
+	"elementId": "gsm.NSI.technics"
+}

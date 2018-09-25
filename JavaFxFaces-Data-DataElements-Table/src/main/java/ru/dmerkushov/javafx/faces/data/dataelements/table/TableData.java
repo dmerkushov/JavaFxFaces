@@ -8,6 +8,8 @@ package ru.dmerkushov.javafx.faces.data.dataelements.table;
 import java.io.StringReader;
 import java.util.Objects;
 import java.util.concurrent.Callable;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -29,6 +31,7 @@ public final class TableData {
 	private final TableDataRowPattern rp;
 	private final ObservableList<TableDataRow> rows = FXCollections.<TableDataRow>observableArrayList ();
 	private SimpleObjectProperty<Callable<TableDataRow>> dataRowCreatorProperty = new SimpleObjectProperty<> (null);
+	private SimpleBooleanProperty rowsDeletableProperty = new SimpleBooleanProperty (false);
 
 	public TableData (TableDataRowPattern rowPattern) {
 		Objects.requireNonNull (rowPattern, "rowPattern");
@@ -50,6 +53,10 @@ public final class TableData {
 
 	public SimpleObjectProperty<Callable<TableDataRow>> getDataRowCreatorProperty () {
 		return dataRowCreatorProperty;
+	}
+
+	public BooleanProperty getRowsDeletableProperty () {
+		return rowsDeletableProperty;
 	}
 
 	String toStoredString () {
@@ -94,6 +101,8 @@ public final class TableData {
 		}
 		job.add ("rows", rowsJab);
 
+		job.add ("rowsDeletable", getRowsDeletableProperty ().getValue ());
+
 		return job;
 	}
 
@@ -135,6 +144,9 @@ public final class TableData {
 			TableDataRow tdr = td.prepareRow (des);
 			td.getRows ().add (tdr);
 		}
+
+		boolean rowsDeletable = json.getBoolean ("rowsDeletable", false);
+		td.getRowsDeletableProperty ().setValue (rowsDeletable);
 
 		return td;
 	}

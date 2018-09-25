@@ -5,6 +5,7 @@
  */
 package ru.dmerkushov.javafx.faces.data.dataelements.table;
 
+import java.io.InputStream;
 import java.util.Objects;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -13,12 +14,16 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
@@ -45,7 +50,13 @@ public class TableDataElementView extends TableView {
 		TableData td = tdp.getValue ();
 		TableDataRowPattern rp = td.getRowPattern ();
 
-		TableColumn[] tableColumns = new TableColumn[rp.columnTitles.length];
+		int tableColumnCount = rp.columnTitles.length;
+		boolean rowsDeletable = tde.getCurrentValueProperty ().getValue ().getRowsDeletableProperty ().getValue ();
+		if (rowsDeletable) {
+			tableColumnCount++;
+		}
+
+		TableColumn[] tableColumns = new TableColumn[tableColumnCount];
 
 		for (int i = 0; i < rp.columnTitles.length; i++) {
 			tableColumns[i] = new TableColumn (rp.columnTitles[i]);
@@ -54,6 +65,11 @@ public class TableDataElementView extends TableView {
 
 			tableColumns[i].setCellFactory ((TableColumn) -> new TableDataElementCell (fin_i));
 			tableColumns[i].setCellValueFactory (new TableDataElementCellValueFactory (fin_i));
+		}
+
+		if (rowsDeletable) {
+			tableColumns[tableColumnCount - 1] = new TableColumn ();
+			tableColumns[tableColumnCount - 1].setCellFactory ((TableColumn) -> new TableDataElementDeleteRowCell ());
 		}
 
 		this.setEditable (true);
@@ -175,6 +191,49 @@ public class TableDataElementView extends TableView {
 			}
 
 			setGraphic (view);
+		}
+	}
+
+	public class TableDataElementDeleteRowCell extends TableCell {
+
+		private ImageView imgView16;
+		private Label lbl;
+		private Node graphic;
+
+		public TableDataElementDeleteRowCell () {
+			super ();
+
+			InputStream is16 = getClass ().getResourceAsStream ("/ru/dmerkushov/javafxfaces/data/dataelements/table/delete-16.png");
+			Image img16 = new Image (is16);
+			imgView16 = new ImageView (img16);
+			lbl = new Label (java.util.ResourceBundle.getBundle ("ru/dmerkushov/javafxfaces/data/dataelements/table/Bundle").getString ("BTN_DELROW_CAPTION"));
+			graphic = new HBox (imgView16, lbl);
+
+			setOnMouseClicked (new EventHandler<MouseEvent> () {
+				@Override
+				public void handle (MouseEvent event) {
+					int rowIndex = TableDataElementDeleteRowCell.this.getIndex ();
+					if (tde.getRows ().size () > rowIndex) {
+						tde.getRows ().remove (rowIndex);
+					}
+				}
+			});
+
+			this.getStyleClass ().add ("TableDataElement_table_cell");
+			this.getStyleClass ().add ("TableDataElement_" + TableDataElementView.this.tde.elementId + "_table_cell");
+			this.getStyleClass ().add ("TableDataElement_table_column_rowDelete_cell");
+			this.getStyleClass ().add ("TableDataElement_" + TableDataElementView.this.tde.elementId + "_table_column_rowDelete_cell");
+		}
+
+		@Override
+		protected void updateItem (Object item, boolean empty) {
+			super.updateItem (item, empty);
+
+			int rowIndex = TableDataElementDeleteRowCell.this.getIndex ();
+
+			graphic.visibleProperty ().bind (Bindings.lessThan (rowIndex, Bindings.size (tde.getRows ())));
+
+			setGraphic (graphic);
 		}
 
 	}

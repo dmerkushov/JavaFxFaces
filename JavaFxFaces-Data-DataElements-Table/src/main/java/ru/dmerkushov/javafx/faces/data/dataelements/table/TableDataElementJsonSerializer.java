@@ -69,7 +69,8 @@ public class TableDataElementJsonSerializer implements DataElementJsonSerializer
 		TableDataElementView tdev = tde.getTableDataElementView ();
 		ObservableList<TableColumn> tdevColumns = tdev.getColumns ();
 		for (int i = 0; i < columnWidth.size (); i++) {
-			tdevColumns.get (i).prefWidthProperty ().set (columnWidth.getJsonNumber (i).doubleValue ());
+			double w = columnWidth.getJsonNumber (i).doubleValue ();
+			tdevColumns.get (i).prefWidthProperty ().set (w);
 		}
 
 		return tde;

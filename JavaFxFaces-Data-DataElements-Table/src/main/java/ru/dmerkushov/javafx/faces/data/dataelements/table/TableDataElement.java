@@ -170,6 +170,8 @@ public class TableDataElement extends DataElement<TableData> {
 
 		TableData tableData = tde.getCurrentValueProperty ().getValue ();
 
+		tableData.getRowsDeletableProperty ().setValue (true);
+
 		tableData.getDataRowCreatorProperty ().set (new Callable<TableDataRow> () {
 			@Override
 			public TableDataRow call () throws Exception {
