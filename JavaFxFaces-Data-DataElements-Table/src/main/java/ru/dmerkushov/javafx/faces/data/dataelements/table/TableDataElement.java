@@ -186,12 +186,12 @@ public class TableDataElement extends DataElement<TableData> {
 		});
 
 		StringDataElement de11 = new StringDataElement ("title", "id", null);
-		de11.getCurrentValueProperty ().setValue ("hallo 11");
+		de11.getCurrentValueProperty ().updateValue ("hallo 11");
 
 		IntegerRangeDataElement de12 = new IntegerRangeDataElement ("title", "id", new IntegerRange (3, 4, true), null);
 
 		StringDataElement de21 = new StringDataElement ("title", "id", null);
-		de21.getCurrentValueProperty ().setValue ("hallo 22");
+		de21.getCurrentValueProperty ().updateValue ("hallo 22");
 
 		DataElement de22 = new DateTimeDataElement ("title", "id", null);
 
