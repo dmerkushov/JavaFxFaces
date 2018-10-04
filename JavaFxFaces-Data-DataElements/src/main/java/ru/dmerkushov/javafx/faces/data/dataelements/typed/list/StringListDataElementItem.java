@@ -20,12 +20,12 @@ public class StringListDataElementItem extends ListDataElementItem<String> {
 	}
 
 	@Override
-	public String containedFromString (String str) {
+	public String containedFromStoredString (String str) {
 		return str;
 	}
 
 	@Override
-	public String containedToString (String kept) {
+	public String containedToStoredString (String kept) {
 		return kept;
 	}
 
