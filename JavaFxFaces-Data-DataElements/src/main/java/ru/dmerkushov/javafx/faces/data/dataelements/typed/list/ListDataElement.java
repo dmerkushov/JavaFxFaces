@@ -42,6 +42,15 @@ public class ListDataElement<LI extends ListDataElementItem> extends DataElement
 
 	private boolean dropDownList;
 
+	/**
+	 * Create a ListDataElement instance
+	 *
+	 * @param elementTitle
+	 * @param elementId
+	 * @param defaultValue
+	 * @param persistenceProvider
+	 * @param dropDownList is drop-down list?
+	 */
 	public ListDataElement (String elementTitle, String elementId, SelectionList<LI> defaultValue, DataElementPersistenceProvider persistenceProvider, boolean dropDownList) {
 		super (
 				elementTitle,
@@ -54,6 +63,14 @@ public class ListDataElement<LI extends ListDataElementItem> extends DataElement
 		this.dropDownList = dropDownList;
 	}
 
+	/**
+	 * Create a ListDataElement instance, with drop-down list mode on
+	 *
+	 * @param elementTitle
+	 * @param elementId
+	 * @param defaultValue
+	 * @param persistenceProvider
+	 */
 	public ListDataElement (String elementTitle, String elementId, SelectionList<LI> defaultValue, DataElementPersistenceProvider persistenceProvider) {
 		this (
 				elementTitle,
