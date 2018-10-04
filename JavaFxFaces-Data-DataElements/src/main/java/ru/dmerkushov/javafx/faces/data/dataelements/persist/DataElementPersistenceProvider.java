@@ -10,11 +10,13 @@ import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
 /**
  *
  * @author Dmitriy Merkushov (d.merkushov at gmail.com)
+ * @param <T> Data element type to which this persistence provider is
+ * specialized
  */
-public interface DataElementPersistenceProvider {
+public interface DataElementPersistenceProvider<T extends DataElement> {
 
-	public String load (DataElement dataElement);
+	public String load (T dataElement);
 
-	public void save (DataElement dataElement);
+	public void save (T dataElement);
 
 }
