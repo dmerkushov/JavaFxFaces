@@ -24,10 +24,10 @@ public abstract class ListDataElementItem<T> {
 	 * every ancestor of this class, because it is used in
 	 * {@link ListDataElement}
 	 *
-	 * @param containedStr
+	 * @param containedStr must not be null
 	 */
 	public ListDataElementItem (String containedStr) {
-		setContainedAsString (containedStr);
+		setContainedAsStoredString (containedStr);
 	}
 
 	/**
@@ -44,14 +44,14 @@ public abstract class ListDataElementItem<T> {
 	 *
 	 * @return
 	 */
-	public final String getContainedAsString () {
-		return containedToString (contained);
+	public final String getContainedAsStoredString () {
+		return containedToStoredString (contained);
 	}
 
-	private void setContainedAsString (String containedStr) {
+	private void setContainedAsStoredString (String containedStr) {
 		Objects.requireNonNull (containedStr, "containedStr");
 
-		this.contained = containedFromString (containedStr);
+		this.contained = containedFromStoredString (containedStr);
 	}
 
 	/**
@@ -60,7 +60,7 @@ public abstract class ListDataElementItem<T> {
 	 * @param str
 	 * @return
 	 */
-	protected abstract T containedFromString (String str);
+	protected abstract T containedFromStoredString (String str);
 
 	/**
 	 * Create a string representation of a value of the contained type
@@ -68,7 +68,7 @@ public abstract class ListDataElementItem<T> {
 	 * @param contained
 	 * @return
 	 */
-	protected abstract String containedToString (T contained);
+	protected abstract String containedToStoredString (T contained);
 
 	/**
 	 * Use the contained value's <b>toString()</b>, so it is used in the list
