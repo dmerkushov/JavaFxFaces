@@ -78,7 +78,7 @@ public abstract class ListDataElementItem<T> {
 	 * @return
 	 */
 	@Override
-	public final String toString () {
+	public String toString () {
 		return contained.toString ();
 	}
 
