@@ -10,6 +10,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.UUID;
 import java.util.prefs.Preferences;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
@@ -24,6 +26,7 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
+import javax.json.stream.JsonParsingException;
 import ru.dmerkushov.javafx.faces.FacesConfiguration;
 import ru.dmerkushov.javafx.faces.FacesMain;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
@@ -136,18 +139,36 @@ public class ListDataElement<LI extends ListDataElementItem> extends DataElement
 		return valueFxNode;
 	}
 
+	private ObjectProperty<String> currentValueDisplayedStringProperty;
+
+	@Override
+	public ObjectProperty<String> getCurrentValueDisplayedStringProperty () {
+		if (currentValueDisplayedStringProperty == null) {
+			currentValueDisplayedStringProperty = new SimpleObjectProperty<> ();
+			currentValueDisplayedStringProperty.bind (getCurrentValueProperty ().getValue ().getSelectionProperty ().asString ());
+		}
+		return currentValueDisplayedStringProperty;
+	}
+
 	@Override
 	public String valueToStoredString (SelectionList val) {
 		JsonObjectBuilder job = Json.createObjectBuilder ();
-		job.add ("selected", val.getSelection ().toString ());
-		job.add ("itemClass", val.getSelection ().getClass ().getCanonicalName ());
 
 		JsonArrayBuilder jab = Json.createArrayBuilder ();
 		for (Object item : val) {
-			jab.add (item.toString ());
+			jab.add (((ListDataElementItem) item).getContainedAsStoredString ());
 		}
 
 		job.add ("items", jab);
+
+		if (!val.isEmpty ()) {
+			ListDataElementItem selection = val.getSelection ();
+			if (selection == null) {
+				selection = (ListDataElementItem) val.get (0);
+			}
+			job.add ("selected", selection.getContainedAsStoredString ());
+			job.add ("itemClass", selection.getClass ().getCanonicalName ());
+		}
 
 		return job.build ().toString ();
 	}
@@ -155,24 +176,32 @@ public class ListDataElement<LI extends ListDataElementItem> extends DataElement
 	@Override
 	public SelectionList storedStringToValue (String str) {
 		JsonReader rdr = Json.createReader (new StringReader (str));
-		JsonObject json = rdr.readObject ();
+		JsonObject json;
+		try {
+			json = rdr.readObject ();
+		} catch (JsonParsingException ex) {
+			throw new ListDataElementException ("JsonParsingException in json str: " + str, ex);
+		}
 		SelectionList<LI> sl = new SelectionList<> ();
 
 		try {
-			String className = json.getString ("itemClass", "java.lang.String");
-			Class clazz = Class.forName (className);
-			Constructor constr = clazz.getConstructor (String.class);
-
 			JsonArray itemsArr = json.getJsonArray ("items");
-			for (int i = 0; i < itemsArr.size (); i++) {
-				String itemStr = itemsArr.getString (i);
-				LI itemLi = (LI) constr.newInstance (itemStr);
-				sl.add (itemLi);
-			}
 
-			String selectedValueStr = json.getString ("selected");
-			LI selectedValueLi = (LI) constr.newInstance (selectedValueStr);
-			sl.setSelection (selectedValueLi);
+			if (!itemsArr.isEmpty ()) {
+				String className = json.getString ("itemClass", "java.lang.String");
+				Class clazz = Class.forName (className);
+				Constructor constr = clazz.getConstructor (String.class);
+
+				for (int i = 0; i < itemsArr.size (); i++) {
+					String itemStr = itemsArr.getString (i);
+					LI itemLi = (LI) constr.newInstance (itemStr);
+					sl.add (itemLi);
+				}
+
+				String selectedValueStr = json.getString ("selected");
+				LI selectedValueLi = (LI) constr.newInstance (selectedValueStr);
+				sl.setSelection (selectedValueLi);
+			}
 		} catch (ClassNotFoundException
 				| NoSuchMethodException
 				| SecurityException
@@ -224,7 +253,7 @@ public class ListDataElement<LI extends ListDataElementItem> extends DataElement
 			@Override
 			public void save (DataElement dataElement) {
 			}
-		}, false);
+		}, true);
 		lde.setPanelInstanceUuid (mainPanelUuid);
 
 		FacesPanels.getInstance ().registerPanel (lde);
