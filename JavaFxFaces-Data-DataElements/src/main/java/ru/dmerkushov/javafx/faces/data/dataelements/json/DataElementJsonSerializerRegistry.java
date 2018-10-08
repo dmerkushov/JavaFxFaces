@@ -15,6 +15,7 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
+import javax.json.stream.JsonParsingException;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
 import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
 
@@ -113,6 +114,8 @@ public class DataElementJsonSerializerRegistry {
 		try {
 			JsonReader rdr = Json.createReader (new StringReader (dataElementJsonStr));
 			json = rdr.readObject ();
+		} catch (JsonParsingException ex) {
+			throw new DataElementSerializerException ("Exception when parsing json: " + dataElementJsonStr, ex);
 		} catch (RuntimeException ex) {
 			throw new DataElementSerializerException (ex);
 		}
