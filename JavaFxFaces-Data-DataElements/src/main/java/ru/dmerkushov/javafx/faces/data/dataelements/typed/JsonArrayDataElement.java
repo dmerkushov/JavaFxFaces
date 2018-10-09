@@ -11,6 +11,7 @@ import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
+import javax.json.stream.JsonParsingException;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
 import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializer;
 import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
@@ -50,8 +51,12 @@ public class JsonArrayDataElement extends DataElement<JsonArray> {
 			return null;
 		}
 
-		JsonReader jr = Json.createReader (new StringReader (str));
-		return jr.readArray ();
+		try {
+			JsonReader jr = Json.createReader (new StringReader (str));
+			return jr.readArray ();
+		} catch (JsonParsingException ex) {
+			throw new RuntimeException ("Exception when parsing json: " + str, ex);
+		}
 	}
 
 	public static class JsonSerializer implements DataElementJsonSerializer<JsonArrayDataElement> {
