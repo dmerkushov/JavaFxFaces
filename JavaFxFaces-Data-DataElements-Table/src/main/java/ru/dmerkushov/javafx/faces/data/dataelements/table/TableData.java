@@ -39,7 +39,7 @@ public final class TableData {
 		this.rp = rowPattern;
 	}
 
-	ObservableList<TableDataRow> getRows () {
+	public ObservableList<TableDataRow> getRows () {
 		return rows;
 	}
 
