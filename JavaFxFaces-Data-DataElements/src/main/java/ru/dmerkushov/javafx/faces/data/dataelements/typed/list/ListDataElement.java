@@ -152,6 +152,10 @@ public class ListDataElement<LI extends ListDataElementItem> extends DataElement
 
 	@Override
 	public String valueToStoredString (SelectionList val) {
+		if (val == null) {
+			return "null";
+		}
+
 		JsonObjectBuilder job = Json.createObjectBuilder ();
 
 		JsonArrayBuilder jab = Json.createArrayBuilder ();
@@ -175,6 +179,10 @@ public class ListDataElement<LI extends ListDataElementItem> extends DataElement
 
 	@Override
 	public SelectionList storedStringToValue (String str) {
+		if (str == null || str.equals ("") || str.equals ("null")) {
+			return null;
+		}
+
 		JsonReader rdr = Json.createReader (new StringReader (str));
 		JsonObject json;
 		try {

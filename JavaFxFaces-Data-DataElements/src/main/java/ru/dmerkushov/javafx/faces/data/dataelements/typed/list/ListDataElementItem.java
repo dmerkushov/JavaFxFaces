@@ -79,7 +79,7 @@ public abstract class ListDataElementItem<T> {
 	 */
 	@Override
 	public String toString () {
-		return contained.toString ();
+		return String.valueOf (contained);
 	}
 
 	@Override
