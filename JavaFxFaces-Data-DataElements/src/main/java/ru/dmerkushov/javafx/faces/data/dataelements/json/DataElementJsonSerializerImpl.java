@@ -188,7 +188,9 @@ public class DataElementJsonSerializerImpl<DE extends DataElement<DET>, DET> imp
 			}
 		}
 
-		constructorParameters[defValueIndex] = mockDataElement.storedStringToValue (json.getString ("defaultValue"));
+		if (defValueIndex >= 0) {
+			constructorParameters[defValueIndex] = mockDataElement.storedStringToValue (json.getString ("defaultValue"));
+		}
 
 		DE de;
 		try {
