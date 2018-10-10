@@ -213,8 +213,20 @@ public class TableDataElementView extends TableView {
 				@Override
 				public void handle (MouseEvent event) {
 					int rowIndex = TableDataElementDeleteRowCell.this.getIndex ();
+
 					if (tde.getRows ().size () > rowIndex) {
+
+						TableDataRow row = tde.getRows ().get (rowIndex);
+						TableDataRowDeleteFilter filter = tde.getCurrentValueProperty ().getValue ().getDeleteFilterProperty ().getValue ();
+						if (filter != null && !filter.canDelete (row)) {
+							return;
+						}
+
 						tde.getRows ().remove (rowIndex);
+
+						if (filter != null) {
+							filter.afterDelete (row);
+						}
 					}
 				}
 			});

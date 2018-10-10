@@ -14,7 +14,9 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -171,6 +173,23 @@ public class TableDataElement extends DataElement<TableData> {
 		TableData tableData = tde.getCurrentValueProperty ().getValue ();
 
 		tableData.getRowsDeletableProperty ().setValue (true);
+
+		tableData.getDeleteFilterProperty ().setValue (new TableDataRowDeleteFilter () {
+			@Override
+			public boolean canDelete (TableDataRow tdr) {
+				if (((String) tdr.getDataElement (0).getCurrentValueDisplayedStringProperty ().getValue ()).contains ("hallo")) {
+					Alert alert = new Alert (Alert.AlertType.ERROR, "Cannot delete this line", ButtonType.OK);
+					alert.showAndWait ();
+					return false;
+				}
+				return true;
+			}
+
+			@Override
+			public void afterDelete (TableDataRow tdr) {
+				// Do nothing
+			}
+		});
 
 		tableData.getDataRowCreatorProperty ().set (new Callable<TableDataRow> () {
 			@Override
