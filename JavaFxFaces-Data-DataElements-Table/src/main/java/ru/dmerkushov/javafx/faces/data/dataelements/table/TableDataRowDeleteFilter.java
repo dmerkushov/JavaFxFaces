@@ -11,8 +11,13 @@ package ru.dmerkushov.javafx.faces.data.dataelements.table;
  */
 public interface TableDataRowDeleteFilter {
 
-	boolean canDelete (TableDataRow tdr);
+	default boolean canDelete (TableDataRow tdr) {
+		// Do nothing by default
+		return true;
+	}
 
-	void afterDelete (TableDataRow tdr);
+	default void afterDelete (TableDataRow tdr) {
+		// Do nothing by default
+	}
 
 }
