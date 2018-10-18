@@ -5,6 +5,7 @@
  */
 package ru.dmerkushov.javafx.faces.data.dataelements.typed.list;
 
+import java.util.Arrays;
 import java.util.Collection;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
@@ -66,6 +67,27 @@ public class SelectionList<T extends ListDataElementItem> extends SimpleListProp
 		this ();
 
 		selectionProperty.setValue (selection);
+	}
+
+	public SelectionList (int selectedIndex, Iterable<T> items) {
+		this ();
+
+		items.forEach ((T item) -> {
+			this.add (item);
+		});
+		this.setSelectedIndex (selectedIndex);
+	}
+
+	public SelectionList (Iterable<T> items) {
+		this (0, items);
+	}
+
+	public SelectionList (int selectedIndex, T... items) {
+		this (selectedIndex, Arrays.asList (items));
+	}
+
+	public SelectionList (T... items) {
+		this (0, items);
 	}
 
 	public SimpleObjectProperty<T> getSelectionProperty () {
