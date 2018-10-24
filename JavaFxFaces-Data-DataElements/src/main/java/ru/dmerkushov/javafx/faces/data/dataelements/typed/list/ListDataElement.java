@@ -5,15 +5,14 @@
  */
 package ru.dmerkushov.javafx.faces.data.dataelements.typed.list;
 
-import java.io.StringReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.prefs.Preferences;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ListChangeListener;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
@@ -25,13 +24,13 @@ import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
-import javax.json.JsonReader;
-import javax.json.stream.JsonParsingException;
 import ru.dmerkushov.javafx.faces.FacesConfiguration;
 import ru.dmerkushov.javafx.faces.FacesMain;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
+import ru.dmerkushov.javafx.faces.data.dataelements.DataElementValueProperty;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElementsModule;
-import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
+import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayer;
+import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayerRegistry;
 import ru.dmerkushov.javafx.faces.data.dataelements.registry.DataElementRegistry;
 import ru.dmerkushov.javafx.faces.panels.FacesPanels;
 import ru.dmerkushov.prefconf.PrefConf;
@@ -51,19 +50,32 @@ public class ListDataElement<LI extends ListDataElementItem> extends DataElement
 	 * @param elementTitle
 	 * @param elementId
 	 * @param defaultValue
-	 * @param persistenceProvider
 	 * @param dropDownList is drop-down list?
 	 */
-	public ListDataElement (String elementTitle, String elementId, SelectionList<LI> defaultValue, DataElementPersistenceProvider persistenceProvider, boolean dropDownList) {
+	public ListDataElement (String elementTitle, String elementId, SelectionList<LI> defaultValue, boolean dropDownList) {
 		super (
 				elementTitle,
 				elementId,
 				SelectionList.class,
-				defaultValue,
-				persistenceProvider
+				defaultValue
 		);
 
 		this.dropDownList = dropDownList;
+
+		DataElementDisplayerRegistry.getInstance ().registerDisplayer (this, new Displayer ());
+
+		getCurrentValueProperty ().getValueProperty ().getValue ().addListener (new ListChangeListener () {
+			@Override
+			public void onChanged (ListChangeListener.Change c) {
+				getCurrentValueProperty ().addAll (getCurrentValueProperty ().valueToJson (getCurrentValueProperty ().getValueProperty ().getValue ()));
+			}
+		});
+		getCurrentValueProperty ().getValueProperty ().getValue ().getSelectionProperty ().addListener (new ChangeListener () {
+			@Override
+			public void changed (ObservableValue observable, Object oldValue, Object newValue) {
+				getCurrentValueProperty ().addAll (getCurrentValueProperty ().valueToJson (getCurrentValueProperty ().getValueProperty ().getValue ()));
+			}
+		});
 	}
 
 	/**
@@ -72,155 +84,166 @@ public class ListDataElement<LI extends ListDataElementItem> extends DataElement
 	 * @param elementTitle
 	 * @param elementId
 	 * @param defaultValue
-	 * @param persistenceProvider
 	 */
-	public ListDataElement (String elementTitle, String elementId, SelectionList<LI> defaultValue, DataElementPersistenceProvider persistenceProvider) {
+	public ListDataElement (String elementTitle, String elementId, SelectionList<LI> defaultValue) {
 		this (
 				elementTitle,
 				elementId,
 				defaultValue,
-				persistenceProvider,
 				true
 		);
 	}
 
+	private ValueProperty currentValueProperty;
+
 	@Override
-	public Node getValueFxNode () {
-		if (valueFxNode == null) {
-			if (dropDownList) {
-				ComboBox<LI> comboBox = new ComboBox<> ();
-				comboBox.setItems (getCurrentValueProperty ().getValue ());
-				comboBox.getSelectionModel ().select ((LI) getCurrentValueProperty ().getValue ().getSelection ());
-				comboBox.getSelectionModel ().selectedItemProperty ().addListener (new ChangeListener () {
-					@Override
-					public void changed (ObservableValue observable, Object oldValue, Object newValue) {
-						if (oldValue == newValue) {
-							return;
-						}
-						getCurrentValueProperty ().getValue ().setSelection (comboBox.getSelectionModel ().getSelectedItem ());
-					}
-				});
-				getCurrentValueProperty ().getValue ().getSelectionProperty ().addListener (new ChangeListener () {
-					@Override
-					public void changed (ObservableValue observable, Object oldValue, Object newValue) {
-						if (oldValue == newValue) {
-							return;
-						}
-						comboBox.getSelectionModel ().select ((LI) newValue);
-					}
-				});
-				valueFxNode = comboBox;
-			} else {
-				ListView<LI> listView = new ListView<> ();
-				listView.setItems (getCurrentValueProperty ().getValue ());
-				listView.getSelectionModel ().select ((LI) getCurrentValueProperty ().getValue ().getSelection ());
-				listView.getSelectionModel ().selectedItemProperty ().addListener (new ChangeListener () {
-					@Override
-					public void changed (ObservableValue observable, Object oldValue, Object newValue) {
-						if (oldValue == newValue) {
-							return;
-						}
-						getCurrentValueProperty ().getValue ().setSelection (listView.getSelectionModel ().getSelectedItem ());
-					}
-				});
-				getCurrentValueProperty ().getValue ().getSelectionProperty ().addListener (new ChangeListener () {
-					@Override
-					public void changed (ObservableValue observable, Object oldValue, Object newValue) {
-						if (oldValue == newValue) {
-							return;
-						}
-						listView.getSelectionModel ().select ((LI) newValue);
-					}
-				});
-				valueFxNode = listView;
+	public DataElementValueProperty<SelectionList> getCurrentValueProperty () {
+		if (currentValueProperty == null) {
+			currentValueProperty = new ValueProperty ();
+		}
+		return currentValueProperty;
+	}
+
+	public class ValueProperty extends DataElementValueProperty<SelectionList> {
+
+		public ValueProperty () {
+			super (valueType);
+		}
+
+		@Override
+		public JsonObject valueToJson (SelectionList value) {
+			JsonObjectBuilder job = Json.createObjectBuilder ();
+
+			JsonArrayBuilder jab = Json.createArrayBuilder ();
+			for (Object item : value) {
+				jab.add (((ListDataElementItem) item).getContainedAsStoredString ());
 			}
-		}
 
-		return valueFxNode;
-	}
+			job.add ("items", jab);
 
-	private ObjectProperty<String> currentValueDisplayedStringProperty;
-
-	@Override
-	public ObjectProperty<String> getCurrentValueDisplayedStringProperty () {
-		if (currentValueDisplayedStringProperty == null) {
-			currentValueDisplayedStringProperty = new SimpleObjectProperty<> ();
-			currentValueDisplayedStringProperty.bind (getCurrentValueProperty ().getValue ().getSelectionProperty ().asString ());
-		}
-		return currentValueDisplayedStringProperty;
-	}
-
-	@Override
-	public String valueToStoredString (SelectionList val) {
-		if (val == null) {
-			return "null";
-		}
-
-		JsonObjectBuilder job = Json.createObjectBuilder ();
-
-		JsonArrayBuilder jab = Json.createArrayBuilder ();
-		for (Object item : val) {
-			jab.add (((ListDataElementItem) item).getContainedAsStoredString ());
-		}
-
-		job.add ("items", jab);
-
-		if (!val.isEmpty ()) {
-			ListDataElementItem selection = val.getSelection ();
-			if (selection == null) {
-				selection = (ListDataElementItem) val.get (0);
-			}
-			job.add ("selected", selection.getContainedAsStoredString ());
-			job.add ("itemClass", selection.getClass ().getCanonicalName ());
-		}
-
-		return job.build ().toString ();
-	}
-
-	@Override
-	public SelectionList storedStringToValue (String str) {
-		if (str == null || str.equals ("") || str.equals ("null")) {
-			return null;
-		}
-
-		JsonReader rdr = Json.createReader (new StringReader (str));
-		JsonObject json;
-		try {
-			json = rdr.readObject ();
-		} catch (JsonParsingException ex) {
-			throw new ListDataElementException ("JsonParsingException in json str: " + str, ex);
-		}
-		SelectionList<LI> sl = new SelectionList<> ();
-
-		try {
-			JsonArray itemsArr = json.getJsonArray ("items");
-
-			if (!itemsArr.isEmpty ()) {
-				String className = json.getString ("itemClass", "java.lang.String");
-				Class clazz = Class.forName (className);
-				Constructor constr = clazz.getConstructor (String.class);
-
-				for (int i = 0; i < itemsArr.size (); i++) {
-					String itemStr = itemsArr.getString (i);
-					LI itemLi = (LI) constr.newInstance (itemStr);
-					sl.add (itemLi);
+			if (!value.isEmpty ()) {
+				ListDataElementItem selection = value.getSelection ();
+				if (selection == null) {
+					selection = (ListDataElementItem) value.get (0);
 				}
-
-				String selectedValueStr = json.getString ("selected");
-				LI selectedValueLi = (LI) constr.newInstance (selectedValueStr);
-				sl.setSelection (selectedValueLi);
+				job.add ("selected", selection.getContainedAsStoredString ());
+				job.add ("itemClass", selection.getClass ().getCanonicalName ());
 			}
-		} catch (ClassNotFoundException
-				| NoSuchMethodException
-				| SecurityException
-				| InstantiationException
-				| IllegalAccessException
-				| IllegalArgumentException
-				| InvocationTargetException ex) {
-			throw new ListDataElementException (ex);
+
+			return job.build ();
 		}
 
-		return sl;
+		@Override
+		public SelectionList jsonToValue (JsonObject json) {
+			SelectionList<LI> sl = new SelectionList<> ();
+
+			try {
+				JsonArray itemsArr = json.getJsonArray ("items");
+
+				if (!itemsArr.isEmpty ()) {
+					String className = json.getString ("itemClass", "java.lang.String");
+					Class clazz = Class.forName (className);
+					Constructor constr = clazz.getConstructor (String.class);
+
+					for (int i = 0; i < itemsArr.size (); i++) {
+						String itemStr = itemsArr.getString (i);
+						LI itemLi = (LI) constr.newInstance (itemStr);
+						sl.add (itemLi);
+					}
+
+					String selectedValueStr = json.getString ("selected");
+					LI selectedValueLi = (LI) constr.newInstance (selectedValueStr);
+					sl.setSelection (selectedValueLi);
+				}
+			} catch (ClassNotFoundException
+					| NoSuchMethodException
+					| SecurityException
+					| InstantiationException
+					| IllegalAccessException
+					| IllegalArgumentException
+					| InvocationTargetException ex) {
+				throw new ListDataElementException (ex);
+			}
+
+			return sl;
+		}
+
+		@Override
+		public String valueToDisplayedString (SelectionList value) {
+			return Objects.toString (value.getSelection ());
+		}
+	}
+
+	public class Displayer implements DataElementDisplayer<ListDataElement<LI>> {
+
+		@Override
+		public Node getValueEdit (ListDataElement<LI> dataElement) {
+			if (dropDownList) {
+				return getValueEditDropdownList ();
+			} else {
+				return getValueEditListView ();
+			}
+		}
+
+		private Node getValueEditDropdownList () {
+			ComboBox<LI> comboBox = new ComboBox<> ();
+			comboBox.setItems (getCurrentValueProperty ().getValueProperty ().get ());
+			comboBox.getSelectionModel ().select ((LI) getCurrentValueProperty ().getValueProperty ().get ().getSelection ());
+			comboBox.getSelectionModel ().selectedItemProperty ().addListener (new ChangeListener () {
+				@Override
+				public void changed (ObservableValue observable, Object oldValue, Object newValue) {
+					if (oldValue == newValue) {
+						return;
+					}
+					getCurrentValueProperty ().getValueProperty ().get ().setSelection (comboBox.getSelectionModel ().getSelectedItem ());
+				}
+			});
+			getCurrentValueProperty ().getValueProperty ().get ().getSelectionProperty ().addListener (new ChangeListener () {
+				@Override
+				public void changed (ObservableValue observable, Object oldValue, Object newValue) {
+					if (oldValue == newValue) {
+						return;
+					}
+					comboBox.getSelectionModel ().select ((LI) newValue);
+				}
+			});
+			return comboBox;
+		}
+
+		private Node getValueEditListView () {
+			ListView<LI> listView = new ListView<> ();
+			listView.setItems (getCurrentValueProperty ().getValueProperty ().get ());
+			listView.getSelectionModel ().select ((LI) getCurrentValueProperty ().getValueProperty ().get ().getSelection ());
+			listView.getSelectionModel ().selectedItemProperty ().addListener (new ChangeListener () {
+				@Override
+				public void changed (ObservableValue observable, Object oldValue, Object newValue) {
+					if (oldValue == newValue) {
+						return;
+					}
+					getCurrentValueProperty ().getValueProperty ().get ().setSelection (listView.getSelectionModel ().getSelectedItem ());
+				}
+			});
+			getCurrentValueProperty ().getValueProperty ().get ().getSelectionProperty ().addListener (new ChangeListener () {
+				@Override
+				public void changed (ObservableValue observable, Object oldValue, Object newValue) {
+					if (oldValue == newValue) {
+						return;
+					}
+					listView.getSelectionModel ().select ((LI) newValue);
+				}
+			});
+			return listView;
+		}
+
+		@Override
+		public Node getValueView (ListDataElement<LI> dataElement) {
+			throw new UnsupportedOperationException ("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
+
+		@Override
+		public Node getTitle (ListDataElement<LI> dataElement) {
+			throw new UnsupportedOperationException ("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
 	}
 
 	private UUID panelInstanceUuid = UUID.randomUUID ();
@@ -231,7 +254,11 @@ public class ListDataElement<LI extends ListDataElementItem> extends DataElement
 	}
 
 	public void setPanelInstanceUuid (UUID panelInstanceUuid) {
+		Displayer displayer = (Displayer) DataElementDisplayerRegistry.getInstance ().getDisplayer (this);
+
 		this.panelInstanceUuid = panelInstanceUuid;
+
+		DataElementDisplayerRegistry.getInstance ().registerDisplayer (this, displayer);
 	}
 
 	public boolean isDropDownList () {
@@ -252,16 +279,7 @@ public class ListDataElement<LI extends ListDataElementItem> extends DataElement
 			}
 		};
 
-		final ListDataElement<StringListDataElementItem> lde = new ListDataElement<> ("titole", "iid", sl, new DataElementPersistenceProvider () {
-			@Override
-			public String load (DataElement dataElement) {
-				return "{\"selected\":\"olla\",\"itemClass\":\"ru.dmerkushov.javafx.faces.data.dataelements.typed.list.StringListDataElementItem\",\"items\":[\"0\",\"alla\",\"ella\",\"olla\"]}";
-			}
-
-			@Override
-			public void save (DataElement dataElement) {
-			}
-		}, true);
+		final ListDataElement<StringListDataElementItem> lde = new ListDataElement<> ("titole", "iid", sl, true);
 		lde.setPanelInstanceUuid (mainPanelUuid);
 
 		FacesPanels.getInstance ().registerPanel (lde);
@@ -284,7 +302,7 @@ public class ListDataElement<LI extends ListDataElementItem> extends DataElement
 			primaryStage.onHidingProperty ().set (new EventHandler<WindowEvent> () {
 				@Override
 				public void handle (WindowEvent event) {
-					System.out.println (lde.valueToStoredString (lde.getCurrentValueProperty ().getValue ()));
+					System.out.println ("Will be saved as: " + lde.getCurrentValueProperty ().toJsonString ());
 				}
 			});
 		});

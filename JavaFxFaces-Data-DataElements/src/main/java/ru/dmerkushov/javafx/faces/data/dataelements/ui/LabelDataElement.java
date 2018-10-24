@@ -6,50 +6,60 @@
 package ru.dmerkushov.javafx.faces.data.dataelements.ui;
 
 import java.util.Objects;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.scene.Node;
-import javafx.scene.control.Label;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+import ru.dmerkushov.javafx.faces.data.dataelements.DataElementValueProperty;
 
 /**
  *
  * @author Dmitriy Merkushov <d.merkushov@gmail.com>
  */
-public class LabelDataElement extends UiDataElement {
+public class LabelDataElement extends UiDataElement<String> {
 
-	private final StringProperty labelTextProperty;
-
-	public LabelDataElement (String displayName, StringProperty labelTextProperty) {
-		super (displayName);
+	public LabelDataElement (String displayName, Property<String> labelTextProperty) {
+		super (displayName, String.class);
 
 		Objects.requireNonNull (labelTextProperty, "labelTextProperty");
 
-		this.labelTextProperty = labelTextProperty;
+		getCurrentValueProperty ().getValueProperty ().bind (labelTextProperty);
 	}
 
 	public LabelDataElement (String displayName, String labelText) {
 		this (displayName, new SimpleStringProperty (labelText));
 	}
 
-	public StringProperty getLabelTextProperty () {
-		return labelTextProperty;
+	private ValueProperty currentValueProperty;
+
+	public ValueProperty getCurrentValueProperty () {
+		return currentValueProperty;
 	}
 
-	@Override
-	public Node getValueFxNode () {
-		if (valueFxNode == null) {
-			Label l = new Label ();
-			l.textProperty ().bind (getLabelTextProperty ());
-			l.getStyleClass ().add ("LabelDataElement");
+	public static class ValueProperty extends DataElementValueProperty<String> {
 
-			valueFxNode = l;
+		public ValueProperty () {
+			super (String.class);	// Since String is final
 		}
-		return valueFxNode;
-	}
 
-	@Override
-	public Node getValueViewFxNode () {
-		return getValueFxNode ();
+		@Override
+		public JsonObject valueToJson (String value) {
+			JsonObjectBuilder job = Json.createObjectBuilder ();
+			job.add ("value", value);
+			return job.build ();
+		}
+
+		@Override
+		public String jsonToValue (JsonObject json) {
+			return json.getString ("value", null);
+		}
+
+		@Override
+		public String valueToDisplayedString (String value) {
+			return Objects.toString (value);
+		}
+
 	}
 
 }

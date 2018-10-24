@@ -5,14 +5,19 @@
  */
 package ru.dmerkushov.javafx.faces.data.dataelements.typed;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
+import java.util.HashMap;
+import java.util.Map;
 import javafx.scene.Node;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+import javax.json.JsonValue;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
+import ru.dmerkushov.javafx.faces.data.dataelements.DataElementValueProperty;
+import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayer;
+import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayerRegistry;
 import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializerImpl;
-import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
 
 /**
  *
@@ -20,67 +25,92 @@ import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersisten
  */
 public class BooleanDataElement extends DataElement<Boolean> {
 
-	public BooleanDataElement (String elementTitle, String elementId, Boolean defaultValue, DataElementPersistenceProvider persistenceProvider) {
-		super (elementTitle, elementId, Boolean.class, defaultValue, persistenceProvider);
+	public BooleanDataElement (String elementTitle, String elementId, Boolean defaultValue) {
+		super (elementTitle, elementId, Boolean.class, defaultValue);
+
+		DataElementDisplayerRegistry.getInstance ().registerDisplayer (this, Displayer.getInstance ());
 	}
+
+	private ValueProperty currentValueProperty;
 
 	@Override
-	public String valueToStoredString (Boolean val) {
-		if (val == null) {
-			return "null";
+	public DataElementValueProperty<Boolean> getCurrentValueProperty () {
+		if (currentValueProperty == null) {
+			currentValueProperty = new ValueProperty (Boolean.class);
 		}
-
-		return val.toString ();
+		return currentValueProperty;
 	}
 
-	@Override
-	public Boolean storedStringToValue (String str) {
-		if (str == null || str.equals ("null") || str.equals ("")) {
-			return null;
+	public static class ValueProperty extends DataElementValueProperty<Boolean> {
+
+		public ValueProperty (Class<Boolean> valueClass) {
+			super (valueClass);
 		}
 
-		return Boolean.valueOf (str);
-	}
-
-	@Override
-	public Node getValueFxNode () {
-		if (valueFxNode == null) {
-			CheckBox checkBox = new CheckBox ();
-			checkBox.selectedProperty ().bindBidirectional (getCurrentValueProperty ());
-			valueFxNode = checkBox;
+		@Override
+		public Boolean jsonToValue (JsonObject json) {
+			return json.getOrDefault ("value", JsonValue.NULL).equals (JsonValue.TRUE);
 		}
 
-		return valueFxNode;
-	}
+		@Override
+		public JsonObject valueToJson (Boolean value) {
+			JsonObjectBuilder job = Json.createObjectBuilder ();
+			job.add ("value", value == null ? JsonValue.FALSE : (value ? JsonValue.TRUE : JsonValue.FALSE));
+			return job.build ();
+		}
 
-	public Node getValueViewFxNode () {
-		if (valueViewFxNode == null) {
-			Label label = new Label (
-					getCurrentValueProperty ().getValue ()
+		@Override
+		public String valueToDisplayedString (Boolean value) {
+			if (value == null) {
+				return java.util.ResourceBundle.getBundle ("ru.dmerkushov.javafx.faces.data.dataelements.Bundle").getString ("BOOLEANDE_NULL");
+			}
+
+			return value
 					? java.util.ResourceBundle.getBundle ("ru.dmerkushov.javafx.faces.data.dataelements.Bundle").getString ("BOOLEANDE_YES")
-					: java.util.ResourceBundle.getBundle ("ru.dmerkushov.javafx.faces.data.dataelements.Bundle").getString ("BOOLEANDE_NO")
-			);
-			getCurrentValueProperty ().addListener (new ChangeListener<Boolean> () {
-				@Override
-				public void changed (ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-					label.textProperty ().setValue (
-							newValue
-									? java.util.ResourceBundle.getBundle ("ru.dmerkushov.javafx.faces.data.dataelements.Bundle").getString ("BOOLEANDE_YES")
-									: java.util.ResourceBundle.getBundle ("ru.dmerkushov.javafx.faces.data.dataelements.Bundle").getString ("BOOLEANDE_NO")
-					);
-				}
-			});
-			valueViewFxNode = label;
+					: java.util.ResourceBundle.getBundle ("ru.dmerkushov.javafx.faces.data.dataelements.Bundle").getString ("BOOLEANDE_NO");
 		}
-
-		return valueViewFxNode;
 	}
 
 	public static class JsonSerializer extends DataElementJsonSerializerImpl<BooleanDataElement, Boolean> {
 
 		public JsonSerializer () {
-			super (BooleanDataElement.class, Boolean.class, new String[]{"elementTitle", "elementId", "defaultValue", "persistenceProvider"});
+			super (BooleanDataElement.class, Boolean.class, new String[]{"elementTitle", "elementId", "defaultValue"});
+		}
+	}
+
+	public static class Displayer implements DataElementDisplayer<BooleanDataElement> {
+
+		////////////////////////////////////////////////////////////////////////////
+		// BooleanDataElementDisplayer is a singleton class
+		////////////////////////////////////////////////////////////////////////////
+		private static Displayer _instance;
+
+		/**
+		 * Get the single instance of BooleanDataElementDisplayer
+		 *
+		 * @return The same instance of BooleanDataElementDisplayer every time
+		 * the method is called
+		 */
+		public static synchronized Displayer getInstance () {
+			if (_instance == null) {
+				_instance = new Displayer ();
+			}
+			return _instance;
 		}
 
+		private Displayer () {
+		}
+		////////////////////////////////////////////////////////////////////////////
+
+		private Map<BooleanDataElement, Node> titleNodes = new HashMap<> ();
+		private Map<BooleanDataElement, Node> valueViewNodes = new HashMap<> ();
+		private Map<BooleanDataElement, Node> valueEditNodes = new HashMap<> ();
+
+		@Override
+		public Node getValueEdit (BooleanDataElement dataElement) {
+			CheckBox checkBox = new CheckBox ();
+			checkBox.selectedProperty ().bindBidirectional (dataElement.getCurrentValueProperty ().getValueProperty ());
+			return checkBox;
+		}
 	}
 }

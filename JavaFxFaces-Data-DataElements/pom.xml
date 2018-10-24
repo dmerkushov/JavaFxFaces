@@ -31,5 +31,10 @@
 	  <version>1.3</version>
 	  <scope>test</scope>
 	 </dependency>
+	 <dependency>
+	  <groupId>ru.dmerkushov</groupId>
+	  <artifactId>JavaFxFaces-Data-Json</artifactId>
+	  <version>${fxfaces.version}</version>
+	 </dependency>
 	</dependencies>
 </project>

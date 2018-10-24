@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package ru.dmerkushov.javafx.faces.data.dataelements.json;
 
 import java.io.StringReader;
@@ -49,7 +44,7 @@ public class DataElementJsonSerializerRegistry {
 
 	private final Map<Class<? extends DataElement>, DataElementJsonSerializer> serializers = new HashMap<> ();
 
-	public <T extends DataElement> void registerSerializer (Class<T> clazz, DataElementJsonSerializer<T> serializer) {
+	public <DE extends DataElement> void registerSerializer (Class<DE> clazz, DataElementJsonSerializer<DE> serializer) {
 		Objects.requireNonNull (clazz, "clazz");
 		Objects.requireNonNull (serializer, "serializer");
 
@@ -62,7 +57,7 @@ public class DataElementJsonSerializerRegistry {
 		serializers.remove (clazz);
 	}
 
-	public <T extends DataElement> void unregisterSerializer (DataElementJsonSerializer<T> serializer) {
+	public <DE extends DataElement> void unregisterSerializer (DataElementJsonSerializer<DE> serializer) {
 		Objects.requireNonNull (serializer, "serializer");
 
 		Iterator<Entry<Class<? extends DataElement>, DataElementJsonSerializer>> iter = serializers.entrySet ().iterator ();
@@ -76,7 +71,7 @@ public class DataElementJsonSerializerRegistry {
 		}
 	}
 
-	public <T extends DataElement> DataElementJsonSerializer<T> getSerializer (Class<T> clazz) {
+	public <DE extends DataElement> DataElementJsonSerializer<DE> getSerializer (Class<DE> clazz) {
 		Objects.requireNonNull (clazz, "clazz");
 
 		return serializers.get (clazz);
@@ -84,11 +79,10 @@ public class DataElementJsonSerializerRegistry {
 
 	public DataElement deserialize (JsonObject dataElementJson, DataElementPersistenceProvider persistenceProvider) throws ClassNotFoundException {
 		Objects.requireNonNull (dataElementJson, "dataElementJson");
-//		Objects.requireNonNull (persistenceProvider, "persistenceProvider");
 
-		String className = dataElementJson.getString ("class", "");
+		String className = dataElementJson.getString ("dataElementClass", "");
 		if (className.equals ("")) {
-			throw new DataElementSerializerException ("class field in JSON is empty");
+			throw new DataElementSerializerException ("dataElementClass field in JSON is empty");
 		}
 
 		Class clazz = Class.forName (className);
@@ -108,7 +102,6 @@ public class DataElementJsonSerializerRegistry {
 
 	public DataElement deserialize (String dataElementJsonStr, DataElementPersistenceProvider persistenceProvider) throws ClassNotFoundException {
 		Objects.requireNonNull (dataElementJsonStr, "dataElementJsonStr");
-//		Objects.requireNonNull (persistenceProvider, "persistenceProvider");
 
 		JsonObject json;
 		try {
@@ -128,12 +121,12 @@ public class DataElementJsonSerializerRegistry {
 		DataElementJsonSerializer serializer = getSerializer (dataElement.getClass ());
 
 		if (serializer == null) {
-			throw new DataElementSerializerException ("No DataElement serializer registered for class " + dataElement.getClass ());
+			throw new DataElementSerializerException ("No DataElement serializer registered for data element class " + dataElement.getClass ().getCanonicalName ());
 		}
 
 		JsonObjectBuilder job = serializer.serialize (dataElement);
 
-		job.add ("class", dataElement.getClass ().getCanonicalName ());
+		job.add ("dataElementClass", dataElement.getClass ().getCanonicalName ());
 
 		return job.build ();
 	}

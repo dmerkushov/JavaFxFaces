@@ -6,16 +6,25 @@
 package ru.dmerkushov.javafx.faces.data.dataelements.typed;
 
 import java.time.Duration;
-import javafx.beans.property.ObjectPropertyBase;
-import javafx.beans.value.ChangeListener;
+import java.util.Objects;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.LongProperty;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.util.converter.NumberStringConverter;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
+import ru.dmerkushov.javafx.faces.data.dataelements.DataElementValueProperty;
+import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayer;
 import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializerImpl;
-import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
 
 /**
  *
@@ -23,119 +32,222 @@ import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersisten
  */
 public class DurationDataElement extends DataElement<Duration> {
 
-	private long days;
-	private long hours;
-	private long minutes;
-
-	private TextField daysField;
-	private TextField hoursField;
-	private TextField minutesField;
-
-	public DurationDataElement (String elementTitle, String elementId, Duration defaultValue, DataElementPersistenceProvider persistenceProvider) {
+	public DurationDataElement (String elementTitle, String elementId, Duration defaultValue) {
 		super (
 				elementTitle,
 				elementId,
 				Duration.class,
-				defaultValue != null ? defaultValue : Duration.ofMillis (0L),
-				persistenceProvider
+				defaultValue != null ? defaultValue : Duration.ZERO
 		);
+	}
 
-		minutes = getCurrentValueProperty ().getValue ().toMinutes () % 60;
-		hours = getCurrentValueProperty ().getValue ().toHours () % 24;
-		days = getCurrentValueProperty ().getValue ().toDays ();
+	public DurationDataElement (String elementTitle, String elementId) {
+		this (elementTitle, elementId, Duration.ZERO);
+	}
 
-		showNewValues ();
+	private ValueProperty currentValueProperty;
 
-		getCurrentValueProperty ().addListener ((ObservableValue<? extends Duration> observable, Duration oldValue, Duration newValue) -> {
-			long currentMinutes = minutes;
-			long currentHours = hours;
-			long currentDays = days;
+	@Override
+	public ValueProperty getCurrentValueProperty () {
+		if (currentValueProperty == null) {
+			currentValueProperty = new ValueProperty (Duration.class);
+		}
+		return currentValueProperty;
+	}
 
-			long newMinutes = newValue.toMinutes () % 60;
-			long newHours = newValue.toHours () % 24;
-			long newDays = newValue.toDays ();
+	public static class ValueProperty extends DataElementValueProperty<Duration> {
 
-			if (!(currentMinutes == newMinutes && currentHours == newHours && currentDays == newDays)) {
-				minutes = newMinutes;
-				hours = newHours;
-				days = newDays;
-				showNewValues ();
+		public ValueProperty (Class<Duration> valueClass) {
+			super (valueClass);
+			this.getValueProperty ().set (Duration.ZERO);
+		}
+
+		private LongProperty daysProperty;
+
+		public LongProperty getDaysProperty () {
+			if (daysProperty == null) {
+				daysProperty = new SimpleLongProperty ();
+				daysProperty.set (getValueProperty ().get ().getSeconds () / 3600 / 24);
+				getValueProperty ().addListener ((ObservableValue<? extends Duration> observable1, Duration oldValue, Duration newValue) -> {
+					if (Objects.equals (oldValue, newValue)) {
+						return;
+					}
+					daysProperty.set (newValue.getSeconds () / 3600 / 24);
+				});
+				daysProperty.addListener ((ObservableValue<? extends Number> io, Number oldValue, Number newValue) -> {
+					if (Objects.equals (oldValue, newValue)) {
+						return;
+					}
+
+					Duration current = getValueProperty ().get ();
+
+					long currentDays = current.getSeconds () / 3600 / 24;
+					if (Objects.equals (currentDays, newValue)) {
+						return;
+					}
+
+					Duration newD = current.minusDays (currentDays).plusDays (newValue.longValue ());
+
+					getValueProperty ().set (newD);
+				});
 			}
-		});
-	}
-
-	public DurationDataElement (String elementTitle, String elementId, DataElementPersistenceProvider persistenceProvider) {
-		this (elementTitle, elementId, Duration.ZERO, persistenceProvider);
-	}
-
-	@Override
-	public Duration storedStringToValue (String str) {
-		if (str == null || str.equals ("null") || str.equals ("")) {
-			return defaultValue;
+			return daysProperty;
 		}
 
-		return Duration.parse (str);
-	}
+		private IntegerProperty hoursOfDayProperty;
 
-	@Override
-	public String valueToStoredString (Duration val) {
-		if (val == null) {
-			return "null";
+		public IntegerProperty getHoursOfDayProperty () {
+			if (hoursOfDayProperty == null) {
+				hoursOfDayProperty = new SimpleIntegerProperty ();
+				hoursOfDayProperty.set ((int) (getValueProperty ().get ().getSeconds () / 3600 % 24));
+				getValueProperty ().addListener ((ObservableValue<? extends Duration> observable1, Duration oldValue, Duration newValue) -> {
+					if (Objects.equals (oldValue, newValue)) {
+						return;
+					}
+					hoursOfDayProperty.set ((int) (getValueProperty ().get ().getSeconds () / 3600 % 24));
+				});
+				hoursOfDayProperty.addListener ((ObservableValue<? extends Number> io, Number oldValue, Number newValue) -> {
+					if (Objects.equals (oldValue, newValue)) {
+						return;
+					}
+
+					Duration current = getValueProperty ().get ();
+
+					int currentHours = (int) (current.getSeconds () / 3600 % 24);
+					if (Objects.equals (currentHours, newValue)) {
+						return;
+					}
+
+					Duration newD = current.minusHours (currentHours).plusHours (newValue.longValue ());
+
+					getValueProperty ().set (newD);
+				});
+			}
+			return hoursOfDayProperty;
 		}
 
-		return val.toString ();
+		private IntegerProperty minutesOfHourProperty;
+
+		public IntegerProperty getMinutesOfHourProperty () {
+			if (minutesOfHourProperty == null) {
+				minutesOfHourProperty = new SimpleIntegerProperty ();
+				minutesOfHourProperty.set ((int) (getValueProperty ().get ().getSeconds () / 60 % 60));
+				getValueProperty ().addListener ((ObservableValue<? extends Duration> observable1, Duration oldValue, Duration newValue) -> {
+					if (Objects.equals (oldValue, newValue)) {
+						return;
+					}
+					minutesOfHourProperty.set ((int) (getValueProperty ().get ().getSeconds () / 60 % 60));
+				});
+				minutesOfHourProperty.addListener ((ObservableValue<? extends Number> io, Number oldValue, Number newValue) -> {
+					if (Objects.equals (oldValue, newValue)) {
+						return;
+					}
+
+					Duration current = getValueProperty ().get ();
+
+					int currentMinutes = (int) (current.getSeconds () / 60 % 60);
+					if (Objects.equals (currentMinutes, newValue)) {
+						return;
+					}
+
+					Duration newD = current.minusMinutes (currentMinutes).plusMinutes (newValue.longValue ());
+
+					getValueProperty ().set (newD);
+				});
+			}
+			return minutesOfHourProperty;
+		}
+
+		private IntegerProperty secondsOfMinuteProperty;
+
+		public IntegerProperty getSecondsOfMinuteProperty () {
+			if (secondsOfMinuteProperty == null) {
+				secondsOfMinuteProperty = new SimpleIntegerProperty ();
+				secondsOfMinuteProperty.set ((int) (getValueProperty ().get ().getSeconds () % 60));
+				getValueProperty ().addListener ((ObservableValue<? extends Duration> observable1, Duration oldValue, Duration newValue) -> {
+					if (Objects.equals (oldValue, newValue)) {
+						return;
+					}
+					secondsOfMinuteProperty.set ((int) (getValueProperty ().get ().getSeconds () % 60));
+				});
+				secondsOfMinuteProperty.addListener ((ObservableValue<? extends Number> io, Number oldValue, Number newValue) -> {
+					if (Objects.equals (oldValue, newValue)) {
+						return;
+					}
+
+					Duration current = getValueProperty ().get ();
+
+					int currentSeconds = (int) (current.getSeconds () % 60);
+					if (Objects.equals (currentSeconds, newValue)) {
+						return;
+					}
+
+					Duration newD = current.minusSeconds (currentSeconds).plusSeconds (newValue.longValue ());
+
+					getValueProperty ().set (newD);
+				});
+			}
+			return secondsOfMinuteProperty;
+		}
+
+		@Override
+		public JsonObject valueToJson (Duration value) {
+			int secondsOfMinute = (int) (value.getSeconds () % 60);
+			int minutesOfHour = (int) (value.getSeconds () / 60 % 60);
+			int hoursOfDay = (int) (value.getSeconds () / 3600 % 24);
+			long days = value.getSeconds () / 3600 / 24;
+
+			JsonObjectBuilder job = Json.createObjectBuilder ();
+
+			job.add ("secondsOfMinute", secondsOfMinute);
+			job.add ("minutesOfHour", minutesOfHour);
+			job.add ("hoursOfDay", hoursOfDay);
+			job.add ("days", days);
+
+			return job.build ();
+		}
+
+		@Override
+		public Duration jsonToValue (JsonObject json) {
+			int secondsOfMinute = json.getInt ("secondsOfMinute");
+			int minutesOfHour = json.getInt ("minutesOfHour");
+			int hoursOfDay = json.getInt ("hoursOfDay");
+			long days = json.getJsonNumber ("days").longValue ();
+
+			Duration d = Duration.ZERO.plusDays (days).plusHours (hoursOfDay).plusMinutes (minutesOfHour).plusSeconds (secondsOfMinute);
+			return d;
+		}
+
+		@Override
+		public String valueToDisplayedString (Duration value) {
+			throw new UnsupportedOperationException ("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
+
 	}
 
-	@Override
-	public Node getValueFxNode () {
-		if (valueFxNode == null) {
-			daysField = new TextField (String.valueOf (minutes));
-			daysField.textProperty ().addListener (new ChangeListener<String> () {
-				@Override
-				public void changed (ObservableValue<? extends String> observable, String oldValue, String newValue) {
-					String realNewVal = (newValue == null ? "0" : newValue.replaceAll ("^[\\D]", ""));
-					if (realNewVal.equals ("")) {
-						realNewVal = "0";
-					}
-					getCurrentValueProperty ().updateValue (
-							getCurrentValueProperty ().getValue ()
-									.minus (Duration.ofDays (getCurrentValueProperty ().getValue ().toDays ()))
-									.plus (Duration.ofDays (Long.parseLong (realNewVal)))
-					);
-				}
-			});
+	public static class JsonSerializer extends DataElementJsonSerializerImpl<DurationDataElement, Duration> {
 
-			hoursField = new TextField (String.valueOf (hours));
-			hoursField.textProperty ().addListener (new ChangeListener<String> () {
-				@Override
-				public void changed (ObservableValue<? extends String> observable, String oldValue, String newValue) {
-					String realNewVal = (newValue == null ? "0" : newValue.replaceAll ("^[\\D]", ""));
-					if (realNewVal.equals ("")) {
-						realNewVal = "0";
-					}
-					getCurrentValueProperty ().updateValue (
-							getCurrentValueProperty ().getValue ()
-									.minus (Duration.ofHours (getCurrentValueProperty ().getValue ().toHours () % 24))
-									.plus (Duration.ofHours (Long.parseLong (realNewVal)))
-					);
-				}
-			});
+		public JsonSerializer () {
+			super (DurationDataElement.class, Duration.class, new String[]{"elementTitle", "elementId", "defaultValue"});
+		}
+	}
 
-			minutesField = new TextField (String.valueOf (days));
-			minutesField.textProperty ().addListener (new ChangeListener<String> () {
-				@Override
-				public void changed (ObservableValue<? extends String> observable, String oldValue, String newValue) {
-					String realNewVal = (newValue == null ? "0" : newValue.replaceAll ("^[\\D]", ""));
-					if (realNewVal.equals ("")) {
-						realNewVal = "0";
-					}
-					getCurrentValueProperty ().updateValue (
-							getCurrentValueProperty ().getValue ()
-									.minus (Duration.ofMinutes (getCurrentValueProperty ().getValue ().toMinutes () % 60))
-									.plus (Duration.ofMinutes (Long.parseLong (realNewVal)))
-					);
-				}
-			});
+	public static class Displayer implements DataElementDisplayer<DurationDataElement> {
+
+		@Override
+		public Node getValueEdit (DurationDataElement dataElement) {
+			TextField daysField;
+			TextField hoursField;
+			TextField minutesField;
+
+			daysField = new TextField ();
+			daysField.textProperty ().bindBidirectional ((Property<Number>) dataElement.getCurrentValueProperty ().getDaysProperty (), new NumberStringConverter ());
+
+			hoursField = new TextField ();
+			hoursField.textProperty ().bindBidirectional ((Property<Number>) dataElement.getCurrentValueProperty ().getHoursOfDayProperty (), new NumberStringConverter ());
+
+			minutesField = new TextField ();
+			hoursField.textProperty ().bindBidirectional ((Property<Number>) dataElement.getCurrentValueProperty ().getMinutesOfHourProperty (), new NumberStringConverter ());
 
 			HBox hb = new HBox ();
 
@@ -153,73 +265,7 @@ public class DurationDataElement extends DataElement<Duration> {
 			minutesField.getStyleClass ().add ("input-durationpart");
 			hb.getStyleClass ().add ("input-duration");
 
-			valueFxNode = hb;
-		}
-
-		return valueFxNode;
-	}
-
-	private void adjustCurrentValues () {
-		minutes = Long.parseLong (minutesField.textProperty ().get ());
-		hours = Long.parseLong (hoursField.textProperty ().get ());
-		days = Long.parseLong (daysField.textProperty ().get ());
-
-		getCurrentValueProperty ().updateValue (Duration.ofDays (days).plus (Duration.ofHours (hours)).plus (Duration.ofMinutes (minutes)));
-	}
-
-	private void showNewValues () {
-		if (minutesField != null) {
-			minutesField.textProperty ().set (String.valueOf (minutes));
-		}
-		if (hoursField != null) {
-			hoursField.textProperty ().set (String.valueOf (hours));
-		}
-		if (daysField != null) {
-			daysField.textProperty ().set (String.valueOf (days));
+			return hb;
 		}
 	}
-
-	public class DurationFieldProperty extends ObjectPropertyBase<Long> {
-
-		Long val = 0L;
-
-		@Override
-		public void set (Long newValue) {
-			val = newValue;
-			adjustCurrentValues ();
-		}
-
-		@Override
-		public Long get () {
-			return val;
-		}
-
-		public String getAsString () {
-			return String.valueOf (get ());
-		}
-
-		public void setAsString (String str) {
-			set (Long.parseLong (str));
-		}
-
-		@Override
-		public Object getBean () {
-			return null;
-		}
-
-		@Override
-		public String getName () {
-			return "";
-		}
-
-	}
-
-	public static class JsonSerializer extends DataElementJsonSerializerImpl<DurationDataElement, Duration> {
-
-		public JsonSerializer () {
-			super (DurationDataElement.class, Duration.class, new String[]{"elementTitle", "elementId", "defaultValue", "persistenceProvider"});
-		}
-
-	}
-
 }

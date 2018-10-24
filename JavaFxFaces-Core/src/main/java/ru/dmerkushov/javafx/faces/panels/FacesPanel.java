@@ -112,7 +112,7 @@ public abstract class FacesPanel {
 
 	@Override
 	public String toString () {
-		return getPanelInstanceUuid ().toString ();
+		return getClass ().getSimpleName () + " " + getPanelInstanceUuid ().toString ();
 	}
 
 }

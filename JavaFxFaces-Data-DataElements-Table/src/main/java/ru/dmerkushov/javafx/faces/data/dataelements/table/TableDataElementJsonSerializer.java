@@ -27,7 +27,7 @@ public class TableDataElementJsonSerializer implements DataElementJsonSerializer
 
 		JsonObjectBuilder job = Json.createObjectBuilder ();
 
-		TableData td = tde.getCurrentValueProperty ().getValue ();
+		TableData td = tde.getCurrentValueProperty ().acquireValue ();
 		JsonObjectBuilder tdJob = td.toStoredJson ();
 
 		job.add ("tableData", tdJob);
@@ -62,7 +62,7 @@ public class TableDataElementJsonSerializer implements DataElementJsonSerializer
 		String elementTitle = json.getString ("elementTitle", "");
 		String elementId = json.getString ("elementId", "");
 
-		TableDataElement tde = new TableDataElement (elementTitle, elementId, td, persistenceProvider);
+		TableDataElement tde = new TableDataElement (elementTitle, elementId, td);
 
 		JsonObject tableViewJson = json.getJsonObject ("tableView");
 		JsonArray columnWidth = tableViewJson.getJsonArray ("columnWidth");

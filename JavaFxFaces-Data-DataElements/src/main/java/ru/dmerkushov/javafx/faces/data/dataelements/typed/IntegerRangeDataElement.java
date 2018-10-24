@@ -1,105 +1,164 @@
 package ru.dmerkushov.javafx.faces.data.dataelements.typed;
 
+import java.util.UUID;
+import java.util.prefs.Preferences;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+import ru.dmerkushov.javafx.faces.FacesConfiguration;
+import ru.dmerkushov.javafx.faces.FacesMain;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
+import ru.dmerkushov.javafx.faces.data.dataelements.DataElementValueProperty;
+import ru.dmerkushov.javafx.faces.data.dataelements.DataElementsModule;
+import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayer;
+import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayerRegistry;
 import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializerImpl;
-import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
+import ru.dmerkushov.javafx.faces.data.dataelements.registry.DataElementRegistry;
 import ru.dmerkushov.javafx.faces.data.range.IntegerRange;
+import ru.dmerkushov.javafx.faces.panels.FacesPanels;
+import ru.dmerkushov.prefconf.PrefConf;
 
 public class IntegerRangeDataElement extends DataElement<IntegerRange> {
 
-	IntegerProperty minValueProperty;
-	IntegerProperty maxValueProperty;
-	IntegerProperty worstValueProperty;
-	IntegerProperty bestValueProperty;
-
-	public IntegerRangeDataElement (String elementTitle, String elementId, IntegerRange defaultValue, DataElementPersistenceProvider persistenceProvider) {
+	public IntegerRangeDataElement (String elementTitle, String elementId, IntegerRange defaultValue) {
 		super (
 				elementTitle,
 				elementId,
 				IntegerRange.class,
-				(defaultValue != null ? defaultValue : new IntegerRange (0, 0, true)),
-				persistenceProvider
+				(defaultValue != null ? defaultValue : new IntegerRange (0, 0, true))
 		);
 
-		minValueProperty = new SimpleIntegerProperty (getCurrentValueProperty ().getValue ().getMin ());
-		maxValueProperty = new SimpleIntegerProperty (getCurrentValueProperty ().getValue ().getMax ());
-		getCurrentValueProperty ().addListener ((ObservableValue<? extends IntegerRange> observable, IntegerRange oldValue, IntegerRange newValue) -> {
-			if (newValue.getMin () != minValueProperty.get ()) {
-				minValueProperty.set (newValue.getMin ());
-			}
-			if (newValue.getMax () != maxValueProperty.get ()) {
-				maxValueProperty.set (newValue.getMax ());
-			}
-		});
-		minValueProperty.addListener ((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
-			IntegerRange currentVal = getCurrentValueProperty ().getValue ();
-			int currentMax = currentVal.getMax ();
-			IntegerRange newVal = new IntegerRange ((Integer) newValue, currentMax, currentVal.minIsBest);
-			getCurrentValueProperty ().updateValue (newVal);
-		});
-		maxValueProperty.addListener ((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
-			IntegerRange currentVal = getCurrentValueProperty ().getValue ();
-			int currentMin = currentVal.getMin ();
-			IntegerRange newVal = new IntegerRange ((Integer) newValue, currentMin, currentVal.minIsBest);
-			getCurrentValueProperty ().updateValue (newVal);
-		});
+		DataElementDisplayerRegistry.getInstance ().registerDisplayer (this, new Displayer ());
+	}
 
-		if (this.defaultValue.minIsBest) {
-			bestValueProperty = minValueProperty;
-			worstValueProperty = maxValueProperty;
-		} else {
-			bestValueProperty = maxValueProperty;
-			worstValueProperty = minValueProperty;
+	private ValueProperty currentValueProperty;
+
+	@Override
+	public ValueProperty getCurrentValueProperty () {
+		if (currentValueProperty == null) {
+			currentValueProperty = new ValueProperty ();
 		}
+		return currentValueProperty;
 	}
 
-	@Override
-	public String valueToStoredString (IntegerRange val) {
-		if (val == null) {
-			return "null";
-		}
+	public class ValueProperty extends DataElementValueProperty<IntegerRange> {
 
-		return val.getMin () + "," + val.getMax () + "," + val.minIsBest;
-	}
+		IntegerProperty minValueProperty;
+		IntegerProperty maxValueProperty;
+		IntegerProperty worstValueProperty;
+		IntegerProperty bestValueProperty;
 
-	@Override
-	public IntegerRange storedStringToValue (String str) {
-		if (str == null || str.equals ("null")) {
-			return defaultValue;
-		}
+		public ValueProperty () {
+			super (IntegerRange.class);
 
-		String[] vals = str.split (",");
-		return new IntegerRange (Integer.valueOf (vals[0]), Integer.valueOf (vals[1]), Boolean.valueOf (vals[2]));
-	}
+			getValueProperty ().set (new IntegerRange (0, 0, true));
 
-	@Override
-	protected String valueToDisplayedString (IntegerRange val) {
-		if (val == null) {
-			return "";
-		}
-
-		return val.getMin () + "-" + val.getMax ();
-	}
-
-	@Override
-	protected IntegerRange displayedStringToValue (String str) {
-		String[] vals = str.split ("-");
-		return new IntegerRange (Integer.valueOf (vals[0]), Integer.valueOf (vals[1]), this.getCurrentValueProperty ().getValue ().minIsBest);
-	}
-
-	@Override
-	public Node getValueFxNode () {
-		if (valueFxNode == null) {
-			TextField minField = new TextField ();
+			minValueProperty = new SimpleIntegerProperty (getValueProperty ().get ().getMin ());
+			maxValueProperty = new SimpleIntegerProperty (getValueProperty ().get ().getMax ());
+			getValueProperty ().addListener ((ObservableValue<? extends IntegerRange> observable, IntegerRange oldValue, IntegerRange newValue) -> {
+				if (newValue.getMin () != minValueProperty.get ()) {
+					minValueProperty.set (newValue.getMin ());
+				}
+				if (newValue.getMax () != maxValueProperty.get ()) {
+					maxValueProperty.set (newValue.getMax ());
+				}
+			});
 			minValueProperty.addListener ((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
-				IntegerRange currentVal = getCurrentValueProperty ().getValue ();
+				IntegerRange currentVal = getValueProperty ().get ();
+				int currentMax = currentVal.getMax ();
+				IntegerRange newVal = new IntegerRange ((Integer) newValue, currentMax, currentVal.minIsBest);
+				getValueProperty ().set (newVal);
+			});
+			maxValueProperty.addListener ((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+				IntegerRange currentVal = getValueProperty ().get ();
+				int currentMin = currentVal.getMin ();
+				IntegerRange newVal = new IntegerRange ((Integer) newValue, currentMin, currentVal.minIsBest);
+				getValueProperty ().set (newVal);
+			});
+
+			if (getDefaultValue ().minIsBest) {
+				bestValueProperty = minValueProperty;
+				worstValueProperty = maxValueProperty;
+			} else {
+				bestValueProperty = maxValueProperty;
+				worstValueProperty = minValueProperty;
+			}
+		}
+
+		public IntegerProperty getMinValueProperty () {
+			return minValueProperty;
+		}
+
+		public IntegerProperty getMaxValueProperty () {
+			return maxValueProperty;
+		}
+
+		public IntegerProperty getWorstValueProperty () {
+			return worstValueProperty;
+		}
+
+		public IntegerProperty getBestValueProperty () {
+			return bestValueProperty;
+		}
+
+		@Override
+		public JsonObject valueToJson (IntegerRange value) {
+			JsonObjectBuilder job = Json.createObjectBuilder ();
+
+			job.add ("first", value.first);
+			job.add ("second", value.second);
+			job.add ("minIsBest", value.minIsBest);
+
+			return job.build ();
+		}
+
+		@Override
+		public IntegerRange jsonToValue (JsonObject json) {
+			int first = json.getInt ("first");
+			int second = json.getInt ("second");
+			boolean minIsBest = json.getBoolean ("minIsBest");
+
+			return new IntegerRange (first, second, minIsBest);
+		}
+
+		@Override
+		public String valueToDisplayedString (IntegerRange value) {
+			StringBuilder sb = new StringBuilder ();
+			if (value.minIsBest) {
+				sb.append ("*");
+			}
+			sb.append (value.getMin ()).append (" - ").append (value.getMax ());
+			if (!value.minIsBest) {
+				sb.append ("*");
+			}
+			return sb.toString ();
+		}
+	}
+
+	public static class JsonSerializer extends DataElementJsonSerializerImpl<IntegerRangeDataElement, IntegerRange> {
+
+		public JsonSerializer () {
+			super (IntegerRangeDataElement.class, IntegerRange.class, new String[]{"elementTitle", "elementId", "defaultValue"});
+		}
+	}
+
+	public static class Displayer implements DataElementDisplayer<IntegerRangeDataElement> {
+
+		@Override
+		public Node getValueEdit (IntegerRangeDataElement dataElement) {
+			TextField minField = new TextField ();
+			dataElement.getCurrentValueProperty ().getMinValueProperty ().addListener ((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+				IntegerRange currentVal = dataElement.getCurrentValueProperty ().getValueProperty ().get ();
 				int currentMax = currentVal.getMax ();
 				IntegerRange newVal = new IntegerRange ((Integer) newValue, currentMax, currentVal.minIsBest);
 				minField.textProperty ().set (newVal.getMin ().toString ());
@@ -113,14 +172,14 @@ public class IntegerRangeDataElement extends DataElement<IntegerRange> {
 					minField.textProperty ().set (realNewVal);
 				}
 				if (!realNewVal.equals (oldValue)) {
-					minValueProperty.set (Integer.parseInt (realNewVal));
+					dataElement.getCurrentValueProperty ().getMinValueProperty ().set (Integer.parseInt (realNewVal));
 				}
 			});
-			minField.textProperty ().setValue (getCurrentValueProperty ().getValue ().getMin ().toString ());
+			minField.textProperty ().setValue (dataElement.getCurrentValueProperty ().getValueProperty ().get ().getMin ().toString ());
 
 			TextField maxField = new TextField ();
-			maxValueProperty.addListener ((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
-				IntegerRange currentVal = getCurrentValueProperty ().getValue ();
+			dataElement.getCurrentValueProperty ().getMaxValueProperty ().addListener ((ObservableValue<? extends Number> observable, Number oldValue, Number newValue) -> {
+				IntegerRange currentVal = dataElement.getCurrentValueProperty ().getValueProperty ().get ();
 				int currentMin = currentVal.getMin ();
 				IntegerRange newVal = new IntegerRange ((Integer) newValue, currentMin, currentVal.minIsBest);
 				maxField.textProperty ().set (newVal.getMax ().toString ());
@@ -134,10 +193,10 @@ public class IntegerRangeDataElement extends DataElement<IntegerRange> {
 					maxField.textProperty ().set (realNewVal);
 				}
 				if (!realNewVal.equals (oldValue)) {
-					maxValueProperty.set (Integer.parseInt (realNewVal));
+					dataElement.getCurrentValueProperty ().getMaxValueProperty ().set (Integer.parseInt (realNewVal));
 				}
 			});
-			maxField.textProperty ().setValue (getCurrentValueProperty ().getValue ().getMax ().toString ());
+			maxField.textProperty ().setValue (dataElement.getCurrentValueProperty ().getValueProperty ().get ().getMax ().toString ());
 
 			HBox hb = new HBox ();
 			hb.getChildren ().add (minField);
@@ -146,32 +205,46 @@ public class IntegerRangeDataElement extends DataElement<IntegerRange> {
 
 			hb.getStyleClass ().add ("prop");
 
-			valueFxNode = hb;
+			return hb;
 		}
-		return valueFxNode;
 	}
 
-	public IntegerProperty getMinValueProperty () {
-		return minValueProperty;
-	}
+	////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////
+	public static void main (String[] args) throws Exception {
+		final UUID mainPanelUuid = UUID.fromString ("50bca6cd-cbed-4af9-9d3d-881bafca45d8");
 
-	public IntegerProperty getMaxValueProperty () {
-		return maxValueProperty;
-	}
+		IntegerRange ir = new IntegerRange (0, 1, true);
 
-	public IntegerProperty getWorstValueProperty () {
-		return worstValueProperty;
-	}
+		final IntegerRangeDataElement lde = new IntegerRangeDataElement ("titole", "iid", ir);
+		lde.setPanelInstanceUuid (mainPanelUuid);
 
-	public IntegerProperty getBestValueProperty () {
-		return bestValueProperty;
-	}
+		FacesPanels.getInstance ().registerPanel (lde);
 
-	public static class JsonSerializer extends DataElementJsonSerializerImpl<IntegerRangeDataElement, IntegerRange> {
+		DataElementRegistry.getInstance ().registerDataElement (lde, null);
 
-		public JsonSerializer () {
-			super (IntegerRangeDataElement.class, IntegerRange.class, new String[]{"elementTitle", "elementId", "defaultValue", "persistenceProvider"});
-		}
+		String envName = "listDataElementTest";
 
+		Preferences systemPrefs = PrefConf.getInstance ().getSystemConfigurationForEnvironment (FacesConfiguration.class, envName);
+		systemPrefs.put ("loggingLevel", "ALL");
+		systemPrefs.put ("moduleList", DataElementsModule.class.getCanonicalName ());
+		systemPrefs.put ("mainPanelUuid", mainPanelUuid.toString ());
+
+		FacesMain.doBeforePrimaryStageShow (() -> {
+			Stage primaryStage = FacesMain.getInstanceWhenCreated ().getPrimaryStage ();
+
+			primaryStage.setMinWidth (1024.0);
+			primaryStage.setMinHeight (768.0);
+
+			primaryStage.onHidingProperty ().set (new EventHandler<WindowEvent> () {
+				@Override
+				public void handle (WindowEvent event) {
+					System.out.println ("Will be saved as: " + lde.getCurrentValueProperty ().toJsonString ());
+					System.out.println ("Displayed string val: " + lde.getCurrentValueDisplayedStringProperty ().get ());
+				}
+			});
+		});
+
+		FacesMain.main (new String[]{"-e", envName});
 	}
 }

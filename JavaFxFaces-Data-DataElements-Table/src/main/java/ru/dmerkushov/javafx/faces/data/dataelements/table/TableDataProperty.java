@@ -6,7 +6,7 @@
 package ru.dmerkushov.javafx.faces.data.dataelements.table;
 
 import java.util.Iterator;
-import javafx.beans.property.SimpleObjectProperty;
+import javax.json.JsonObject;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElementValueProperty;
 
 /**
@@ -16,23 +16,21 @@ import ru.dmerkushov.javafx.faces.data.dataelements.DataElementValueProperty;
 public final class TableDataProperty extends DataElementValueProperty<TableData> {
 
 	TableDataProperty (TableData tableData) {
-		super (tableData);
-	}
+		super (TableData.class);
 
-	void valueChanged () {
-		this.fireValueChangedEvent ();
+		getValueProperty ().set (tableData);
 	}
 
 	@Override
 	public void updateValue (TableData newVal) {
-		TableData current = get ();
+		TableData current = getValueProperty ().get ();
 
 		if (current != null && newVal != null && !current.getRowPattern ().equals (newVal.getRowPattern ())) {
 			throw new IllegalArgumentException ("Row patterns for the current and new table datas don't match: current is " + current.getRowPattern () + ", the new is " + newVal.getRowPattern ());
 		}
 
 		if (current == null || newVal == null) {
-			((SimpleObjectProperty) this).setValue (newVal);
+			getValueProperty ().set (newVal);
 			return;
 		}
 
@@ -45,5 +43,24 @@ public final class TableDataProperty extends DataElementValueProperty<TableData>
 		for (TableDataRow row : newVal.getRows ()) {
 			current.getRows ().add (row);
 		}
+	}
+
+	@Override
+	public JsonObject valueToJson (TableData value) {
+		return value.toStoredJson ().build ();
+	}
+
+	@Override
+	public TableData jsonToValue (JsonObject json) {
+		try {
+			return TableData.fromStoredJson (json);
+		} catch (ClassNotFoundException ex) {
+			throw new TableDataElementException (ex);
+		}
+	}
+
+	@Override
+	public String valueToDisplayedString (TableData value) {
+		return "(TABLE)";
 	}
 }

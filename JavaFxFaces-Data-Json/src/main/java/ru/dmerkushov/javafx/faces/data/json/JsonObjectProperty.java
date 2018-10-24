@@ -11,6 +11,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -38,6 +39,7 @@ public class JsonObjectProperty extends SimpleMapProperty<String, JsonValue> imp
 	private ObservableSet<String> addOrder = FXCollections.observableSet (new LinkedHashSet<> ());
 
 	public JsonObjectProperty () {
+		super (FXCollections.observableMap (new LinkedHashMap<> ()));
 	}
 
 	public JsonObjectProperty (Object bean, String name) {
