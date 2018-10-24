@@ -105,6 +105,11 @@ public class DataElementJsonSerializerImpl<DE extends DataElement<DET>, DET> imp
 
 					mockDataElementConstructorParameters[i] = new NopPersistenceProvider ();
 					break;
+				case "dropDownList":
+					constructorParameterClasses[i] = Boolean.class;
+
+					mockDataElementConstructorParameters[i] = Boolean.TRUE;
+					break;
 				default:
 					throw new DataElementSerializerException ("Unknown constructor parameter: " + constructorParameterNames[i]);
 			}
