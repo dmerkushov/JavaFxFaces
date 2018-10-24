@@ -7,14 +7,14 @@ package ru.dmerkushov.javafx.faces.data.dataelements;
 
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.scene.Node;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
-import javafx.util.StringConverter;
+import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayer;
+import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayerRegistry;
 import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
 import ru.dmerkushov.javafx.faces.panels.FacesPanel;
 import ru.dmerkushov.javafx.faces.panels.FacesPanelView;
@@ -44,18 +44,13 @@ public abstract class DataElement<T> extends FacesPanel {
 	/**
 	 * The default value for the data element
 	 */
-	public final T defaultValue;
+	private T defaultValue;
 
 	/**
 	 * Persistence provider for the data element
 	 */
 	private DataElementPersistenceProvider persistenceProvider;
 
-	protected Node valueFxNode;
-	protected Node valueViewFxNode;
-	protected Node titleFxNode;
-
-	private DataElementValueProperty<T> currentValueProperty;
 	private ObjectProperty<String> currentValueDisplayedStringProperty;
 
 	/**
@@ -66,7 +61,7 @@ public abstract class DataElement<T> extends FacesPanel {
 	 * @param defaultValue
 	 * @param persistenceProvider may be null
 	 */
-	public DataElement (String elementTitle, String elementId, Class<T> valueType, T defaultValue, DataElementPersistenceProvider persistenceProvider) {
+	public DataElement (String elementTitle, String elementId, Class<T> valueType, T defaultValue) {
 		Objects.requireNonNull (elementTitle, "elementTitle");
 		Objects.requireNonNull (elementId, "elementId");
 		Objects.requireNonNull (valueType, "valueType");
@@ -74,46 +69,25 @@ public abstract class DataElement<T> extends FacesPanel {
 		this.elementTitle = elementTitle;
 		this.elementId = elementId;
 		this.valueType = valueType;
+
+		setDefaultValue (defaultValue);
+	}
+
+	private void setDefaultValue (T defaultValue) {
 		this.defaultValue = defaultValue;
-		this.persistenceProvider = persistenceProvider;
+
+		if (getCurrentValueProperty () == null) {
+			return;
+		}
+		if (getCurrentValueProperty ().getValueProperty () == null) {
+			return;
+		}
+
+		getCurrentValueProperty ().getValueProperty ().set (defaultValue);
 	}
 
-	/**
-	 * Prepare this data element value for saving with the persistence provider.
-	 * Must be currentState-independent
-	 *
-	 * @param val
-	 * @return
-	 */
-	public abstract String valueToStoredString (T val);
-
-	/**
-	 * Read this data element's value from the format of the persistence
-	 * provider. Must be current
-	 *
-	 * @param str
-	 * @return
-	 */
-	public abstract T storedStringToValue (String str);
-
-	/**
-	 * Prepare this data element value for displaying to the user
-	 *
-	 * @param val
-	 * @return
-	 */
-	protected String valueToDisplayedString (T val) {
-		return valueToStoredString (val);
-	}
-
-	/**
-	 * Read this data element's value from the user input
-	 *
-	 * @param str
-	 * @return
-	 */
-	protected T displayedStringToValue (String str) {
-		return storedStringToValue (str);
+	public T getDefaultValue () {
+		return defaultValue;
 	}
 
 	/**
@@ -121,12 +95,7 @@ public abstract class DataElement<T> extends FacesPanel {
 	 *
 	 * @return
 	 */
-	public DataElementValueProperty<T> getCurrentValueProperty () {
-		if (currentValueProperty == null) {
-			this.currentValueProperty = new DataElementValueProperty<> (this.defaultValue);
-		}
-		return currentValueProperty;
-	}
+	public abstract DataElementValueProperty<T> getCurrentValueProperty ();
 
 	/**
 	 * Get the property that keeps the current value of this data element in the
@@ -134,65 +103,18 @@ public abstract class DataElement<T> extends FacesPanel {
 	 *
 	 * @return
 	 */
-	public ObjectProperty<String> getCurrentValueDisplayedStringProperty () {
+	public ReadOnlyObjectProperty<String> getCurrentValueDisplayedStringProperty () {
 		if (currentValueDisplayedStringProperty == null) {
 			this.currentValueDisplayedStringProperty = new SimpleObjectProperty<> ();
-			Bindings.bindBidirectional (currentValueDisplayedStringProperty, getCurrentValueProperty (), new StringConverter<T> () {
-				@Override
-				public String toString (T object) {
-					return valueToDisplayedString (object);
-				}
 
+			currentValueDisplayedStringProperty.bind (Bindings.createStringBinding (new Callable<String> () {
 				@Override
-				public T fromString (String string) {
-					return displayedStringToValue (string);
+				public String call () throws Exception {
+					return getCurrentValueProperty ().currentValueToDisplayedString ();
 				}
-			});
+			}, getCurrentValueProperty ()));
 		}
 		return currentValueDisplayedStringProperty;
-	}
-
-	/**
-	 * Get the JavaFX node used to read or even edit the data element's value
-	 *
-	 * @return
-	 */
-	public Node getValueFxNode () {
-		if (valueFxNode == null) {
-			TextField textField = new TextField ();
-			textField.textProperty ().bindBidirectional (getCurrentValueDisplayedStringProperty ());
-			valueFxNode = textField;
-		}
-		return valueFxNode;
-	}
-
-	/**
-	 * Get the JavaFX node used to only read the data element's value. This is
-	 * useful for data elements in tables.
-	 *
-	 * @return
-	 */
-	public Node getValueViewFxNode () {
-		if (valueViewFxNode == null) {
-			Label label = new Label ();
-			label.textProperty ().bind (getCurrentValueDisplayedStringProperty ());
-			valueViewFxNode = label;
-		}
-
-		return valueViewFxNode;
-	}
-
-	/**
-	 * Get the JavaFX node used to show the title of this data element
-	 *
-	 * @return
-	 */
-	public Node getTitleFxNode () {
-		if (titleFxNode == null) {
-			Label label = new Label (elementTitle);
-			titleFxNode = label;
-		}
-		return titleFxNode;
 	}
 
 	public DataElementPersistenceProvider getPersistenceProvider () {
@@ -203,9 +125,21 @@ public abstract class DataElement<T> extends FacesPanel {
 		this.persistenceProvider = persistenceProvider;
 	}
 
+	private UUID panelInstanceUuid = UUID.randomUUID ();
+
 	@Override
 	public UUID getPanelInstanceUuid () {
-		return UUID.randomUUID ();
+		return panelInstanceUuid;
+	}
+
+	public void setPanelInstanceUuid (UUID panelInstanceUuid) {
+		DataElementDisplayer displayer = DataElementDisplayerRegistry.getInstance ().getDisplayer (this);
+
+		this.panelInstanceUuid = panelInstanceUuid;
+
+		if (displayer != null) {
+			DataElementDisplayerRegistry.getInstance ().registerDisplayer (this, displayer);
+		}
 	}
 
 	@Override
@@ -228,7 +162,7 @@ public abstract class DataElement<T> extends FacesPanel {
 	@Override
 	public FacesPanelView getView () {
 		if (fpView == null) {
-			fpView = new FacesPanelView (this, getValueFxNode ());
+			fpView = new FacesPanelView (this, DataElementDisplayerRegistry.getInstance ().getDisplayer (this).getValueEdit (this));
 		}
 		return fpView;
 	}

@@ -7,6 +7,7 @@ package ru.dmerkushov.javafx.faces.data.dataelements.typed;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import javafx.beans.property.ObjectProperty;
@@ -18,10 +19,18 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
+import javafx.util.converter.LocalDateTimeStringConverter;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+import javax.json.JsonValue;
+import ru.dmerkushov.javafx.faces.FacesConfiguration;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
-import ru.dmerkushov.javafx.faces.data.dataelements.DataElementException;
+import ru.dmerkushov.javafx.faces.data.dataelements.DataElementValueProperty;
+import ru.dmerkushov.javafx.faces.data.dataelements.DataElementsModule;
+import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayer;
+import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayerRegistry;
 import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializerImpl;
-import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
 
 /**
  *
@@ -29,216 +38,279 @@ import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersisten
  */
 public class DateTimeDataElement extends DataElement<LocalDateTime> {
 
-	public static final String FIELD_DELIMITER = "_";
+	public DateTimeDataElement (String elementTitle, String elementId, LocalDateTime defaultValue) {
+		super (elementTitle, elementId, LocalDateTime.class, defaultValue);
 
-	public final ObjectProperty<LocalDate> currentValueLocalDateProperty = new ObjectPropertyBase<LocalDate> () {
-		@Override
-		public LocalDate get () {
-			return getCurrentValueProperty ().getValue ().toLocalDate ();
-		}
-
-		@Override
-		public void set (LocalDate v) {
-			int year = v.get (ChronoField.YEAR);
-			int month = v.get (ChronoField.MONTH_OF_YEAR);
-			int dayOfMonth = v.get (ChronoField.DAY_OF_MONTH);
-
-			LocalDateTime curr = getCurrentValueProperty ().getValue ();
-			int hour = curr.get (ChronoField.HOUR_OF_DAY);
-			int minute = curr.get (ChronoField.MINUTE_OF_HOUR);
-			int second = curr.get (ChronoField.SECOND_OF_MINUTE);
-			int nanoOfSecond = curr.get (ChronoField.NANO_OF_SECOND);
-
-			getCurrentValueProperty ().updateValue (LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond));
-		}
-
-		@Override
-		public Object getBean () {
-			return null;
-		}
-
-		@Override
-		public String getName () {
-			return "";
-		}
-	};
-
-	public final ObjectProperty<Integer> currentValueHourProperty = new ObjectPropertyBase<Integer> () {
-		@Override
-		public Integer get () {
-			return getCurrentValueProperty ().getValue ().getHour ();
-		}
-
-		@Override
-		public void set (Integer v) {
-			LocalDateTime curr = getCurrentValueProperty ().getValue ();
-			int year = curr.get (ChronoField.YEAR);
-			int month = curr.get (ChronoField.MONTH_OF_YEAR);
-			int dayOfMonth = curr.get (ChronoField.DAY_OF_MONTH);
-
-			int hour = v;
-
-			int minute = curr.get (ChronoField.MINUTE_OF_HOUR);
-			int second = curr.get (ChronoField.SECOND_OF_MINUTE);
-			int nanoOfSecond = curr.get (ChronoField.NANO_OF_SECOND);
-
-			getCurrentValueProperty ().updateValue (LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond));
-		}
-
-		@Override
-		public Object getBean () {
-			return null;
-		}
-
-		@Override
-		public String getName () {
-			return "";
-		}
-	};
-
-	public final ObjectProperty<Integer> currentValueMinuteProperty = new ObjectPropertyBase<Integer> () {
-		@Override
-		public Integer get () {
-			return getCurrentValueProperty ().getValue ().getMinute ();
-		}
-
-		@Override
-		public void set (Integer v) {
-			LocalDateTime curr = getCurrentValueProperty ().getValue ();
-			int year = curr.get (ChronoField.YEAR);
-			int month = curr.get (ChronoField.MONTH_OF_YEAR);
-			int dayOfMonth = curr.get (ChronoField.DAY_OF_MONTH);
-			int hour = curr.get (ChronoField.HOUR_OF_DAY);
-
-			int minute = v;
-
-			int second = curr.get (ChronoField.SECOND_OF_MINUTE);
-			int nanoOfSecond = curr.get (ChronoField.NANO_OF_SECOND);
-
-			getCurrentValueProperty ().updateValue (LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond));
-		}
-
-		@Override
-		public Object getBean () {
-			return null;
-		}
-
-		@Override
-		public String getName () {
-			return "";
-		}
-	};
-
-	public final ObjectProperty<Integer> currentValueSecondProperty = new ObjectPropertyBase<Integer> () {
-		@Override
-		public Integer get () {
-			return getCurrentValueProperty ().getValue ().getSecond ();
-		}
-
-		@Override
-		public void set (Integer v) {
-			LocalDateTime curr = getCurrentValueProperty ().getValue ();
-			int year = curr.get (ChronoField.YEAR);
-			int month = curr.get (ChronoField.MONTH_OF_YEAR);
-			int dayOfMonth = curr.get (ChronoField.DAY_OF_MONTH);
-			int hour = curr.get (ChronoField.HOUR_OF_DAY);
-			int minute = curr.get (ChronoField.MINUTE_OF_HOUR);
-
-			int second = v;
-
-			int nanoOfSecond = curr.get (ChronoField.NANO_OF_SECOND);
-
-			getCurrentValueProperty ().updateValue (LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond));
-		}
-
-		@Override
-		public Object getBean () {
-			return null;
-		}
-
-		@Override
-		public String getName () {
-			return "";
-		}
-	};
-
-	public DateTimeDataElement (String elementTitle, String elementId, LocalDateTime defaultValue, DataElementPersistenceProvider persistenceProvider) {
-		super (elementTitle, elementId, LocalDateTime.class, defaultValue, persistenceProvider);
+		DataElementDisplayerRegistry.getInstance ().registerDisplayer (this, Displayer.getInstance ());
 	}
 
-	public DateTimeDataElement (String elementTitle, String elementId, DataElementPersistenceProvider persistenceProvider) {
-		this (elementTitle, elementId, LocalDateTime.now (), persistenceProvider);
+	public DateTimeDataElement (String elementTitle, String elementId) {
+		this (elementTitle, elementId, LocalDateTime.now ());
 	}
+
+	ValueProperty currentValueProperty;
 
 	@Override
-	public String valueToStoredString (LocalDateTime val) {
-		if (val == null) {
-			return "null";
+	public ValueProperty getCurrentValueProperty () {
+		if (currentValueProperty == null) {
+			currentValueProperty = new ValueProperty (LocalDateTime.class);
 		}
-
-		StringBuilder sb = new StringBuilder ();
-		sb.append (val.get (ChronoField.YEAR)).append (FIELD_DELIMITER);
-		sb.append (val.get (ChronoField.MONTH_OF_YEAR)).append (FIELD_DELIMITER);
-		sb.append (val.get (ChronoField.DAY_OF_MONTH)).append (FIELD_DELIMITER);
-		sb.append (val.get (ChronoField.HOUR_OF_DAY)).append (FIELD_DELIMITER);
-		sb.append (val.get (ChronoField.MINUTE_OF_HOUR)).append (FIELD_DELIMITER);
-		sb.append (val.get (ChronoField.SECOND_OF_MINUTE)).append (FIELD_DELIMITER);
-		sb.append (val.get (ChronoField.NANO_OF_SECOND));
-
-		return sb.toString ();
+		return currentValueProperty;
 	}
 
-	@Override
-	public LocalDateTime storedStringToValue (String str) {
-		if (str == null || str.equals ("") || str.equals ("null") || str.equals ("NULL")) {
-			return null;
+	public static class ValueProperty extends DataElementValueProperty<LocalDateTime> {
+
+		LocalDateTimeStringConverter stringConverter;
+
+		public ValueProperty (Class<LocalDateTime> valueClass) {
+			super (valueClass);
+
+			String dateTimePattern = FacesConfiguration.getUserPrefsForModule (DataElementsModule.class).get ("DATE_STRING_FORMAT", "yyyy-MM-dd HH:mm:ss");
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern (dateTimePattern);
+			stringConverter = new LocalDateTimeStringConverter (formatter, formatter);
 		}
 
-		String[] fields = str.split (FIELD_DELIMITER);
+		@Override
+		public LocalDateTime jsonToValue (JsonObject json) {
 
-		if (fields.length != 7) {
-			throw new DataElementException ("Incorrect LocalDateTime format (must be 7 parts as split by \"" + FIELD_DELIMITER + "\"): " + str);
+			if (json.containsKey ("value") && json.get ("value").equals (JsonValue.NULL)) {
+				return null;
+			}
+
+			int year = json.getInt ("year", 2000);
+			Month month = Month.valueOf (json.getString ("month", Month.JANUARY.name ()));
+			int dayOfMonth = json.getInt ("dayOfMonth", 1);
+			int hourOfDay = json.getInt ("hourOfDay", 0);
+			int minuteOfHour = json.getInt ("minuteOfHour", 0);
+			int secondOfMinute = json.getInt ("secondOfMinute", 0);
+			int nanoOfSecond = json.getInt ("nanoOfSecond", 0);
+
+			return LocalDateTime.of (year, month, dayOfMonth, hourOfDay, minuteOfHour, secondOfMinute, nanoOfSecond);
 		}
 
-		int year = Integer.parseInt (fields[0]);
-		int month = Integer.parseInt (fields[1]);
-		int dayOfMonth = Integer.parseInt (fields[2]);
-		int hour = Integer.parseInt (fields[3]);
-		int minute = Integer.parseInt (fields[4]);
-		int second = Integer.parseInt (fields[5]);
-		int nanoOfSecond = Integer.parseInt (fields[6]);
+		@Override
+		public JsonObject valueToJson (LocalDateTime value) {
+			JsonObjectBuilder job = Json.createObjectBuilder ();
 
-		return LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond);
-	}
+			if (value == null) {
+				job.addNull ("value");
+			} else {
+				job.add ("year", value.getYear ());
+				job.add ("month", value.getMonth ().name ());
+				job.add ("dayOfMonth", value.getDayOfMonth ());
+				job.add ("hourOfDay", value.getHour ());
+				job.add ("minuteOfHour", value.getMinute ());
+				job.add ("secondOfMinute", value.getSecond ());
+				job.add ("nanoOfSecond", value.getNano ());
+			}
 
-	@Override
-	protected LocalDateTime displayedStringToValue (String str) {
-		return null; // As no parsing is needed anywhere
-	}
-
-	@Override
-	protected String valueToDisplayedString (LocalDateTime val) {
-		if (val == null) {
-			return "";
+			return job.build ();
 		}
 
-		StringBuilder sb = new StringBuilder ();
-		sb.append (val.get (ChronoField.YEAR)).append ("-");
-		sb.append (val.get (ChronoField.MONTH_OF_YEAR)).append ("-");
-		sb.append (val.get (ChronoField.DAY_OF_MONTH)).append (" ");
-		sb.append (val.get (ChronoField.HOUR_OF_DAY)).append (":");
-		sb.append (val.get (ChronoField.MINUTE_OF_HOUR)).append (":");
-		sb.append (val.get (ChronoField.SECOND_OF_MINUTE)).append (".");
-		sb.append (val.get (ChronoField.NANO_OF_SECOND));
+		@Override
+		public String valueToDisplayedString (LocalDateTime value) {
+			return stringConverter.toString (value);
+		}
 
-		return sb.toString ();
+		private ObjectProperty<LocalDate> localDateProperty;
+
+		public ObjectProperty<LocalDate> getLocalDateProperty () {
+			if (localDateProperty == null) {
+				localDateProperty = new ObjectPropertyBase<LocalDate> () {
+					@Override
+					public LocalDate get () {
+						return ValueProperty.this.getValueProperty ().get ().toLocalDate ();
+					}
+
+					@Override
+					public void set (LocalDate v) {
+						int year = v.get (ChronoField.YEAR);
+						int month = v.get (ChronoField.MONTH_OF_YEAR);
+						int dayOfMonth = v.get (ChronoField.DAY_OF_MONTH);
+
+						LocalDateTime curr = ValueProperty.this.getValueProperty ().get ();
+						int hour = curr.get (ChronoField.HOUR_OF_DAY);
+						int minute = curr.get (ChronoField.MINUTE_OF_HOUR);
+						int second = curr.get (ChronoField.SECOND_OF_MINUTE);
+						int nanoOfSecond = curr.get (ChronoField.NANO_OF_SECOND);
+
+						ValueProperty.this.getValueProperty ().set (LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond));
+					}
+
+					@Override
+					public Object getBean () {
+						return null;
+					}
+
+					@Override
+					public String getName () {
+						return "";
+					}
+				};
+			}
+
+			return localDateProperty;
+		}
+
+		private ObjectProperty<Integer> hourProperty;
+
+		public ObjectProperty<Integer> getHourProperty () {
+			if (hourProperty == null) {
+				hourProperty = new ObjectPropertyBase<Integer> () {
+					@Override
+					public Integer get () {
+						return ValueProperty.this.getValueProperty ().get ().getHour ();
+					}
+
+					@Override
+					public void set (Integer v) {
+						LocalDateTime curr = ValueProperty.this.getValueProperty ().get ();
+						int year = curr.get (ChronoField.YEAR);
+						int month = curr.get (ChronoField.MONTH_OF_YEAR);
+						int dayOfMonth = curr.get (ChronoField.DAY_OF_MONTH);
+
+						int hour = v;
+
+						int minute = curr.get (ChronoField.MINUTE_OF_HOUR);
+						int second = curr.get (ChronoField.SECOND_OF_MINUTE);
+						int nanoOfSecond = curr.get (ChronoField.NANO_OF_SECOND);
+
+						ValueProperty.this.getValueProperty ().set (LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond));
+					}
+
+					@Override
+					public Object getBean () {
+						return null;
+					}
+
+					@Override
+					public String getName () {
+						return "";
+					}
+				};
+			}
+
+			return hourProperty;
+		}
+
+		private ObjectProperty<Integer> minuteProperty;
+
+		public ObjectProperty<Integer> getMinuteProperty () {
+			if (minuteProperty == null) {
+				minuteProperty = new ObjectPropertyBase<Integer> () {
+					@Override
+					public Integer get () {
+						return ValueProperty.this.getValueProperty ().get ().getMinute ();
+					}
+
+					@Override
+					public void set (Integer v) {
+						LocalDateTime curr = ValueProperty.this.getValueProperty ().get ();
+						int year = curr.get (ChronoField.YEAR);
+						int month = curr.get (ChronoField.MONTH_OF_YEAR);
+						int dayOfMonth = curr.get (ChronoField.DAY_OF_MONTH);
+						int hour = curr.get (ChronoField.HOUR_OF_DAY);
+
+						int minute = v;
+
+						int second = curr.get (ChronoField.SECOND_OF_MINUTE);
+						int nanoOfSecond = curr.get (ChronoField.NANO_OF_SECOND);
+
+						ValueProperty.this.getValueProperty ().set (LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond));
+					}
+
+					@Override
+					public Object getBean () {
+						return null;
+					}
+
+					@Override
+					public String getName () {
+						return "";
+					}
+				};
+			}
+
+			return minuteProperty;
+		}
+
+		private ObjectProperty<Integer> secondProperty;
+
+		public ObjectProperty<Integer> getSecondProperty () {
+			if (secondProperty == null) {
+				secondProperty = new ObjectPropertyBase<Integer> () {
+					@Override
+					public Integer get () {
+						return ValueProperty.this.getValueProperty ().get ().getSecond ();
+					}
+
+					@Override
+					public void set (Integer v) {
+						LocalDateTime curr = ValueProperty.this.getValueProperty ().get ();
+						int year = curr.get (ChronoField.YEAR);
+						int month = curr.get (ChronoField.MONTH_OF_YEAR);
+						int dayOfMonth = curr.get (ChronoField.DAY_OF_MONTH);
+						int hour = curr.get (ChronoField.HOUR_OF_DAY);
+						int minute = curr.get (ChronoField.MINUTE_OF_HOUR);
+
+						int second = v;
+
+						int nanoOfSecond = curr.get (ChronoField.NANO_OF_SECOND);
+
+						ValueProperty.this.getValueProperty ().set (LocalDateTime.of (year, month, dayOfMonth, hour, minute, second, nanoOfSecond));
+					}
+
+					@Override
+					public Object getBean () {
+						return null;
+					}
+
+					@Override
+					public String getName () {
+						return "";
+					}
+				};
+			}
+
+			return secondProperty;
+		}
 	}
 
-	@Override
-	public Node getValueFxNode () {
-		if (valueFxNode == null) {
+	public static class JsonSerializer extends DataElementJsonSerializerImpl<DateTimeDataElement, LocalDateTime> {
+
+		public JsonSerializer () {
+			super (DateTimeDataElement.class, LocalDateTime.class, new String[]{"elementTitle", "elementId", "defaultValue"});
+		}
+	}
+
+	public static class Displayer implements DataElementDisplayer<DateTimeDataElement> {
+
+		////////////////////////////////////////////////////////////////////////////
+		// Displayer is a singleton class
+		////////////////////////////////////////////////////////////////////////////
+		private static Displayer _instance;
+
+		/**
+		 * Get the single instance of Displayer
+		 *
+		 * @return The same instance of Displayer every time the method is
+		 * called
+		 */
+		public static synchronized Displayer getInstance () {
+			if (_instance == null) {
+				_instance = new Displayer ();
+			}
+			return _instance;
+		}
+
+		private Displayer () {
+		}
+		////////////////////////////////////////////////////////////////////////////
+
+		@Override
+		public Node getValueEdit (DateTimeDataElement dataElement) {
 			TextField hourField = new TextField ();
-			hourField.textProperty ().bindBidirectional (currentValueHourProperty, new StringConverter<Integer> () {
+			hourField.textProperty ().bindBidirectional (dataElement.getCurrentValueProperty ().getHourProperty (), new StringConverter<Integer> () {
 				@Override
 				public String toString (Integer object) {
 					return String.valueOf (object);
@@ -252,7 +324,7 @@ public class DateTimeDataElement extends DataElement<LocalDateTime> {
 			hourField.setPrefWidth (40.0);
 
 			TextField minuteField = new TextField ();
-			minuteField.textProperty ().bindBidirectional (currentValueMinuteProperty, new StringConverter<Integer> () {
+			minuteField.textProperty ().bindBidirectional (dataElement.getCurrentValueProperty ().getMinuteProperty (), new StringConverter<Integer> () {
 				@Override
 				public String toString (Integer object) {
 					return String.valueOf (object);
@@ -266,7 +338,7 @@ public class DateTimeDataElement extends DataElement<LocalDateTime> {
 			minuteField.setPrefWidth (40.0);
 
 			TextField secondField = new TextField ();
-			secondField.textProperty ().bindBidirectional (currentValueSecondProperty, new StringConverter<Integer> () {
+			secondField.textProperty ().bindBidirectional (dataElement.getCurrentValueProperty ().getSecondProperty (), new StringConverter<Integer> () {
 				@Override
 				public String toString (Integer object) {
 					return String.valueOf (object);
@@ -308,24 +380,13 @@ public class DateTimeDataElement extends DataElement<LocalDateTime> {
 					return LocalDate.parse (string, f);
 				}
 			});
-			datePicker.valueProperty ().bindBidirectional (currentValueLocalDateProperty);
+			datePicker.valueProperty ().bindBidirectional (dataElement.getCurrentValueProperty ().getLocalDateProperty ());
 
 			VBox vb = new VBox ();
 			vb.getChildren ().add (hb);
 			vb.getChildren ().add (datePicker);
 
-			valueFxNode = vb;
+			return vb;
 		}
-
-		return valueFxNode;
 	}
-
-	public static class JsonSerializer extends DataElementJsonSerializerImpl<DateTimeDataElement, LocalDateTime> {
-
-		public JsonSerializer () {
-			super (DateTimeDataElement.class, LocalDateTime.class, new String[]{"elementTitle", "elementId", "defaultValue", "persistenceProvider"});
-		}
-
-	}
-
 }

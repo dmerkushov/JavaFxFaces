@@ -5,7 +5,7 @@
  */
 package ru.dmerkushov.javafx.faces.data.dataelements.table;
 
-import java.io.StringReader;
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -20,16 +20,14 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
 import ru.dmerkushov.javafx.faces.FacesConfiguration;
 import ru.dmerkushov.javafx.faces.FacesMain;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElementValueProperty;
-import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializer;
+import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayer;
+import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayerRegistry;
 import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializerRegistry;
-import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
+import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementSerializerException;
 import ru.dmerkushov.javafx.faces.data.dataelements.registry.DataElementRegistry;
 import ru.dmerkushov.javafx.faces.data.dataelements.typed.DateTimeDataElement;
 import ru.dmerkushov.javafx.faces.data.dataelements.typed.IntegerRangeDataElement;
@@ -48,35 +46,20 @@ public class TableDataElement extends DataElement<TableData> {
 	private TableDataElementView tdeView;
 	private TableDataProperty currentValueProperty = null;
 
-	public TableDataElement (String elementTitle, String elementId, TableData defaultData, DataElementPersistenceProvider persistenceProvider) {
-		super (elementTitle, elementId, TableData.class, defaultData, persistenceProvider);
+	public TableDataElement (String elementTitle, String elementId, TableData defaultData) {
+		super (elementTitle, elementId, TableData.class, defaultData);
 
 		Objects.requireNonNull (defaultData, "defaultData");
-
 		currentValueProperty = new TableDataProperty (defaultData);
+
+		DataElementDisplayerRegistry.getInstance ().registerDisplayer (this, new Displayer ());
 	}
 
-	@Override
-	public String valueToStoredString (TableData val) {
-		DataElementJsonSerializer<TableDataElement> jsonSerializer = DataElementJsonSerializerRegistry.getInstance ().getSerializer (TableDataElement.class);
+	public static class Displayer implements DataElementDisplayer<TableDataElement> {
 
-		return jsonSerializer.serialize (this).build ().toString ();
-	}
-
-	@Override
-	public TableData storedStringToValue (String str) {
-		JsonReader rdr = Json.createReader (new StringReader (str));
-		JsonObject json = rdr.readObject ();
-
-		DataElementJsonSerializer<TableDataElement> jsonSerializer = DataElementJsonSerializerRegistry.getInstance ().getSerializer (TableDataElement.class);
-
-		return jsonSerializer.deserialize (json, null).getCurrentValueProperty ().getValue ();
-	}
-
-	@Override
-	public Node getValueFxNode () {
-		if (view == null) {
-			TableDataElementView tdev = getTableDataElementView ();
+		@Override
+		public Node getValueEdit (TableDataElement dataElement) {
+			TableDataElementView tdev = dataElement.getTableDataElementView ();
 			tdev.prefWidthProperty ().set (900.0);
 			tdev.minWidthProperty ().set (300.0);
 			tdev.prefHeightProperty ().set (300.0);
@@ -88,7 +71,7 @@ public class TableDataElement extends DataElement<TableData> {
 			Button addBtn = new Button (java.util.ResourceBundle.getBundle ("ru/dmerkushov/javafxfaces/data/dataelements/table/Bundle").getString ("BTN_ADDROW_CAPTION"));
 			addBtn.setOnAction ((ActionEvent event) -> {
 
-				Callable<TableDataRow> dataRowCreator = getCurrentValueProperty ().getValue ().getDataRowCreatorProperty ().get ();
+				Callable<TableDataRow> dataRowCreator = dataElement.getCurrentValueProperty ().getValueProperty ().get ().getDataRowCreatorProperty ().get ();
 
 				if (dataRowCreator == null) {
 					return;
@@ -105,21 +88,24 @@ public class TableDataElement extends DataElement<TableData> {
 					return;
 				}
 
-				getRows ().add (tdr);
+				dataElement.getRows ().add (tdr);
 			});
 
-			addBtn.visibleProperty ().bind (getCurrentValueProperty ().getValue ().getDataRowCreatorProperty ().isNotNull ());
+			addBtn.visibleProperty ().bind (dataElement.getCurrentValueProperty ().getValueProperty ().get ().getDataRowCreatorProperty ().isNotNull ());
 			addBtn.getStyleClass ().add ("TableDataElement_addBtn");
-			addBtn.getStyleClass ().add ("TableDataElement_" + this.elementId + "_addBtn");
+			addBtn.getStyleClass ().add ("TableDataElement_" + dataElement.elementId + "_addBtn");
 
 			vb.getChildren ().add (addBtn);
 			vb.getStyleClass ().add ("TableDataElement_vb");
-			vb.getStyleClass ().add ("TableDataElement_" + this.elementId + "_vb");
+			vb.getStyleClass ().add ("TableDataElement_" + dataElement.elementId + "_vb");
 
-			view = vb;
+			return vb;
 		}
 
-		return view;
+		@Override
+		public Node getValueView (TableDataElement dataElement) {
+			return getValueEdit (dataElement);
+		}
 	}
 
 	public TableDataElementView getTableDataElementView () {
@@ -144,11 +130,17 @@ public class TableDataElement extends DataElement<TableData> {
 	}
 
 	public void setPanelInstanceUuid (UUID panelInstanceUuid) {
+		UUID oldPIU = this.panelInstanceUuid;
+
 		this.panelInstanceUuid = panelInstanceUuid;
+
+		if (!oldPIU.equals (panelInstanceUuid)) {
+			DataElementDisplayerRegistry.getInstance ().registerDisplayer (this, new Displayer ());
+		}
 	}
 
 	public ObservableList<TableDataRow> getRows () {
-		return getCurrentValueProperty ().getValue ().getRows ();
+		return getCurrentValueProperty ().acquireValue ().getRows ();
 	}
 
 	/**
@@ -165,12 +157,11 @@ public class TableDataElement extends DataElement<TableData> {
 		final TableDataElement tde = new TableDataElement (
 				"titole",
 				"iid",
-				new TableData (new TableDataRowPattern (new String[]{"Column 1", "Column 2"}, new Class[]{StringDataElement.class, DataElement.class})),
-				null);
-
+				new TableData (new TableDataRowPattern (new String[]{"Column 1", "Column 2"}, new Class[]{StringDataElement.class, DataElement.class}))
+		);
 		tde.setPanelInstanceUuid (mainPanelUuid);
 
-		TableData tableData = tde.getCurrentValueProperty ().getValue ();
+		TableData tableData = tde.getCurrentValueProperty ().acquireValue ();
 
 		tableData.getRowsDeletableProperty ().setValue (true);
 
@@ -207,12 +198,12 @@ public class TableDataElement extends DataElement<TableData> {
 		StringDataElement de11 = new StringDataElement ("title", "id", null);
 		de11.getCurrentValueProperty ().updateValue ("hallo 11");
 
-		IntegerRangeDataElement de12 = new IntegerRangeDataElement ("title", "id", new IntegerRange (3, 4, true), null);
+		IntegerRangeDataElement de12 = new IntegerRangeDataElement ("title", "id", new IntegerRange (3, 4, true));
 
 		StringDataElement de21 = new StringDataElement ("title", "id", null);
 		de21.getCurrentValueProperty ().updateValue ("hallo 22");
 
-		DataElement de22 = new DateTimeDataElement ("title", "id", null);
+		DataElement de22 = new DateTimeDataElement ("title", "id", LocalDateTime.now ().minusYears (12L));
 
 		tableData.getRows ().add (tableData.prepareRow (de11, de12));
 		tableData.getRows ().add (tableData.prepareRow (de21, de22));
@@ -237,9 +228,18 @@ public class TableDataElement extends DataElement<TableData> {
 			primaryStage.onHidingProperty ().set (new EventHandler<WindowEvent> () {
 				@Override
 				public void handle (WindowEvent event) {
-					System.out.println (tde.valueToStoredString (tde.getCurrentValueProperty ().getValue ()));
+					String jsonStr = DataElementJsonSerializerRegistry.getInstance ().serialize (tde).toString ();
+
+					System.out.println ("Serialized: " + jsonStr);
+
+					try {
+						TableDataElement tde2 = (TableDataElement) DataElementJsonSerializerRegistry.getInstance ().deserialize (jsonStr, null);
+					} catch (ClassNotFoundException ex) {
+						throw new DataElementSerializerException (ex);
+					}
 				}
-			});
+			}
+			);
 		});
 
 		FacesMain.main (new String[]{"-e", envName});

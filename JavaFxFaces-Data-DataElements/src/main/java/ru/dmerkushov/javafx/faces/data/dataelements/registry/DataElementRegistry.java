@@ -61,9 +61,7 @@ public class DataElementRegistry {
 
 			DataElementPersistenceProvider persistenceProvider = dataElement.getPersistenceProvider ();
 			if (persistenceProvider != null) {
-				String persistedStr = persistenceProvider.load (dataElement);
-				Object persistedVal = dataElement.storedStringToValue (persistedStr);
-				dataElement.getCurrentValueProperty ().updateValue (persistedVal);
+				persistenceProvider.load (dataElement.elementId, dataElement.getCurrentValueProperty ());
 			}
 			dataElements.put (dataElement.elementId, dataElement);
 
@@ -109,7 +107,7 @@ public class DataElementRegistry {
 		dataElementColl.stream ().filter ((de) -> {
 			return de.getPersistenceProvider () != null;
 		}).forEach ((de) -> {
-			de.getPersistenceProvider ().save (de);
+			de.getPersistenceProvider ().save (de.elementId, de.getCurrentValueProperty ());
 		});
 	}
 

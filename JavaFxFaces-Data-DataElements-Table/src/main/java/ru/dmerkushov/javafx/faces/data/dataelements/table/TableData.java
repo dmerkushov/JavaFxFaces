@@ -30,9 +30,9 @@ public final class TableData {
 
 	private final TableDataRowPattern rp;
 	private final ObservableList<TableDataRow> rows = FXCollections.<TableDataRow>observableArrayList ();
-	private SimpleObjectProperty<Callable<TableDataRow>> dataRowCreatorProperty = new SimpleObjectProperty<> (null);
-	private SimpleBooleanProperty rowsDeletableProperty = new SimpleBooleanProperty (false);
-	private SimpleObjectProperty<TableDataRowDeleteFilter> deleteFilterProperty = new SimpleObjectProperty<> (null);
+	private final SimpleObjectProperty<Callable<TableDataRow>> dataRowCreatorProperty = new SimpleObjectProperty<> (null);
+	private final SimpleBooleanProperty rowsDeletableProperty = new SimpleBooleanProperty (false);
+	private final SimpleObjectProperty<TableDataRowDeleteFilter> deleteFilterProperty = new SimpleObjectProperty<> (null);
 
 	public TableData (TableDataRowPattern rowPattern) {
 		Objects.requireNonNull (rowPattern, "rowPattern");
@@ -62,12 +62,6 @@ public final class TableData {
 
 	public SimpleObjectProperty<TableDataRowDeleteFilter> getDeleteFilterProperty () {
 		return deleteFilterProperty;
-	}
-
-	String toStoredString () {
-		JsonObjectBuilder job = toStoredJson ();
-
-		return job.build ().toString ();
 	}
 
 	JsonObjectBuilder toStoredJson () {

@@ -5,6 +5,7 @@
  */
 package ru.dmerkushov.javafx.faces.data.dataelements.typed.list;
 
+import java.util.Arrays;
 import java.util.Collection;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
@@ -17,9 +18,9 @@ import javafx.collections.FXCollections;
  *
  * @author dmerkushov
  */
-public class SelectionList<T extends ListDataElementItem> extends SimpleListProperty<T> {
+public class SelectionList<LDEI extends ListDataElementItem> extends SimpleListProperty<LDEI> {
 
-	private SimpleObjectProperty<T> selectionProperty;
+	private SimpleObjectProperty<LDEI> selectionProperty;
 
 	private SimpleIntegerProperty selectedIndexProperty;
 
@@ -48,7 +49,7 @@ public class SelectionList<T extends ListDataElementItem> extends SimpleListProp
 			}
 		});
 
-		selectionProperty.addListener ((ObservableValue<? extends T> observable1, T oldValue, T newValue) -> {
+		selectionProperty.addListener ((ObservableValue<? extends LDEI> observable, LDEI oldValue, LDEI newValue) -> {
 			if (newValue == null) {
 				throw new NullPointerException ("newValue for selectionProperty");
 			}
@@ -62,13 +63,34 @@ public class SelectionList<T extends ListDataElementItem> extends SimpleListProp
 		});
 	}
 
-	public SelectionList (T selection) {
+	public SelectionList (LDEI selection) {
 		this ();
 
 		selectionProperty.setValue (selection);
 	}
 
-	public SimpleObjectProperty<T> getSelectionProperty () {
+	public SelectionList (int selectedIndex, Iterable<LDEI> items) {
+		this ();
+
+		items.forEach ((LDEI item) -> {
+			this.add (item);
+		});
+		this.setSelectedIndex (selectedIndex);
+	}
+
+	public SelectionList (Iterable<LDEI> items) {
+		this (0, items);
+	}
+
+	public SelectionList (int selectedIndex, LDEI... items) {
+		this (selectedIndex, Arrays.asList (items));
+	}
+
+	public SelectionList (LDEI... items) {
+		this (0, items);
+	}
+
+	public SimpleObjectProperty<LDEI> getSelectionProperty () {
 		return selectionProperty;
 	}
 
@@ -76,26 +98,26 @@ public class SelectionList<T extends ListDataElementItem> extends SimpleListProp
 		return selectedIndexProperty;
 	}
 
-	public void setSelection (T newSelection) {
+	public void setSelection (LDEI newSelection) {
 		System.out.println ("Set selection: " + newSelection);
 
-		getSelectionProperty ().setValue (newSelection);
+		getSelectionProperty ().set (newSelection);
 	}
 
-	public T getSelection () {
-		return getSelectionProperty ().getValue ();
+	public LDEI getSelection () {
+		return getSelectionProperty ().get ();
 	}
 
 	public void setSelectedIndex (int newSelected) {
-		getSelectedIndexProperty ().setValue (newSelected);
+		getSelectedIndexProperty ().set (newSelected);
 	}
 
 	public int getSelectedIndex () {
-		return getSelectedIndexProperty ().getValue ();
+		return getSelectedIndexProperty ().get ();
 	}
 
 	@Override
-	public boolean add (T element) {
+	public boolean add (LDEI element) {
 		if (element == null) {
 			throw new NullPointerException ("element");
 		}
@@ -104,7 +126,7 @@ public class SelectionList<T extends ListDataElementItem> extends SimpleListProp
 	}
 
 	@Override
-	public boolean addAll (T... elements) {
+	public boolean addAll (LDEI... elements) {
 		if (elements == null) {
 			throw new NullPointerException ("elements");
 		}
@@ -118,7 +140,7 @@ public class SelectionList<T extends ListDataElementItem> extends SimpleListProp
 	}
 
 	@Override
-	public void add (int i, T element) {
+	public void add (int i, LDEI element) {
 		if (element == null) {
 			throw new NullPointerException ("element");
 		}
@@ -127,7 +149,7 @@ public class SelectionList<T extends ListDataElementItem> extends SimpleListProp
 	}
 
 	@Override
-	public boolean addAll (int i, Collection<? extends T> elements) {
+	public boolean addAll (int i, Collection<? extends LDEI> elements) {
 		if (elements == null) {
 			throw new NullPointerException ("elements");
 		}
@@ -139,7 +161,7 @@ public class SelectionList<T extends ListDataElementItem> extends SimpleListProp
 	}
 
 	@Override
-	public boolean addAll (Collection<? extends T> elements) {
+	public boolean addAll (Collection<? extends LDEI> elements) {
 		if (elements == null) {
 			throw new NullPointerException ("elements");
 		}

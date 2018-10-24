@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package ru.dmerkushov.javafx.faces.data.dataelements.json;
 
 import java.lang.reflect.Constructor;
@@ -13,6 +8,7 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
 import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
+import ru.dmerkushov.javafx.faces.data.dataelements.persist.NopPersistenceProvider;
 
 /**
  *
@@ -107,17 +103,7 @@ public class DataElementJsonSerializerImpl<DE extends DataElement<DET>, DET> imp
 				case "persistenceProvider":
 					constructorParameterClasses[i] = DataElementPersistenceProvider.class;
 
-					mockDataElementConstructorParameters[i] = new DataElementPersistenceProvider () {
-						@Override
-						public String load (DataElement dataElement) {
-							return "";
-						}
-
-						@Override
-						public void save (DataElement dataElement) {
-							return;
-						}
-					};
+					mockDataElementConstructorParameters[i] = new NopPersistenceProvider ();
 					break;
 				default:
 					throw new DataElementSerializerException ("Unknown constructor parameter: " + constructorParameterNames[i]);
@@ -143,9 +129,9 @@ public class DataElementJsonSerializerImpl<DE extends DataElement<DET>, DET> imp
 		Objects.requireNonNull (dataElement, "dataElement");
 
 		JsonObjectBuilder job = Json.createObjectBuilder ();
-		job.add ("defaultValue", valueToString (dataElement.defaultValue));
-		job.add ("value", valueToString (dataElement.getCurrentValueProperty ().getValue ()));
-		job.add ("valueType", dataElement.getCurrentValueProperty ().getValue ().getClass ().getCanonicalName ());
+		job.add ("defaultValue", valueToStoredJson (dataElement.getDefaultValue ()));
+		job.add ("value", valueToStoredJson (dataElement.getCurrentValueProperty ().acquireValue ()));
+		job.add ("valueType", dataElement.getCurrentValueProperty ().acquireValue ().getClass ().getCanonicalName ());
 		job.add ("elementId", dataElement.elementId);
 		job.add ("elementTitle", dataElement.elementTitle);
 		return job;
@@ -189,7 +175,7 @@ public class DataElementJsonSerializerImpl<DE extends DataElement<DET>, DET> imp
 		}
 
 		if (defValueIndex >= 0) {
-			constructorParameters[defValueIndex] = mockDataElement.storedStringToValue (json.getString ("defaultValue"));
+			constructorParameters[defValueIndex] = storedJsonToValue (json.getJsonObject ("defaultValue"));
 		}
 
 		DE de;
@@ -199,36 +185,36 @@ public class DataElementJsonSerializerImpl<DE extends DataElement<DET>, DET> imp
 			throw new DataElementSerializerException (ex);
 		}
 
-		DET value = stringToValue (json.getString ("value"));
-		de.getCurrentValueProperty ().updateValue (value);
+		DET value = storedJsonToValue (json.getJsonObject ("value"));
+		de.getCurrentValueProperty ().getValueProperty ().set (value);
 
 		return de;
 	}
 
 	/**
-	 * By default, this method points to the {@link DataElement#valueToStoredString(java.lang.Object)
+	 * By default, this method points to the {@link DataElementValueProperty#valueToJson(java.lang.Object)
 	 * } method of the {@link #mockDataElement mock data element}, but it may be
 	 * overridden for the needs of the serializer. Note that it must be paired
-	 * with {@link #stringToValue(java.lang.String) }
+	 * with {@link #storedJsonToValue(JsonObject) }
 	 *
 	 * @param val
 	 * @return
 	 */
-	public String valueToString (DET val) {
-		return mockDataElement.valueToStoredString (val);
+	public JsonObject valueToStoredJson (DET val) {
+		return mockDataElement.getCurrentValueProperty ().valueToJson (val);
 	}
 
 	/**
-	 * By default, this method points to the {@link DataElement#storedStringToValue(java.lang.String)
+	 * By default, this method points to the {@link DataElementValueProperty#jsonToValue(JsonObject)
 	 * } method of the {@link #mockDataElement mock data element}, but it may be
 	 * overridden for the needs of the serializer. Note that it must be paired
 	 * with {@link #valueToString(java.lang.String) }
 	 *
-	 * @param str
+	 * @param json
 	 * @return
 	 */
-	public DET stringToValue (String str) {
-		return mockDataElement.storedStringToValue (str);
+	public DET storedJsonToValue (JsonObject json) {
+		return mockDataElement.getCurrentValueProperty ().jsonToValue (json);
 	}
 
 }

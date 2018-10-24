@@ -5,8 +5,8 @@
  */
 package ru.dmerkushov.javafx.faces.data.dataelements;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.prefs.Preferences;
 import ru.dmerkushov.javafx.faces.FacesException;
 import ru.dmerkushov.javafx.faces.FacesModule;
@@ -17,10 +17,9 @@ import ru.dmerkushov.javafx.faces.data.dataelements.typed.DoubleDataElement;
 import ru.dmerkushov.javafx.faces.data.dataelements.typed.DurationDataElement;
 import ru.dmerkushov.javafx.faces.data.dataelements.typed.IntegerDataElement;
 import ru.dmerkushov.javafx.faces.data.dataelements.typed.IntegerRangeDataElement;
-import ru.dmerkushov.javafx.faces.data.dataelements.typed.JsonArrayDataElement;
-import ru.dmerkushov.javafx.faces.data.dataelements.typed.JsonObjectDataElement;
 import ru.dmerkushov.javafx.faces.data.dataelements.typed.LongDataElement;
 import ru.dmerkushov.javafx.faces.data.dataelements.typed.StringDataElement;
+import ru.dmerkushov.javafx.faces.data.json.JsonModule;
 
 /**
  *
@@ -45,22 +44,18 @@ public class DataElementsModule extends FacesModule {
 		DataElementJsonSerializerRegistry.getInstance ().registerSerializer (DateTimeDataElement.class, new DateTimeDataElement.JsonSerializer ());
 		DataElementJsonSerializerRegistry.getInstance ().registerSerializer (DurationDataElement.class, new DurationDataElement.JsonSerializer ());
 
-		DataElementJsonSerializerRegistry.getInstance ().registerSerializer (JsonArrayDataElement.class, new JsonArrayDataElement.JsonSerializer ());
-		DataElementJsonSerializerRegistry.getInstance ().registerSerializer (JsonObjectDataElement.class, new JsonObjectDataElement.JsonSerializer ());
-
 		DataElementJsonSerializerRegistry.getInstance ().registerSerializer (IntegerRangeDataElement.class, new IntegerRangeDataElement.JsonSerializer ());
 
-		//EnumDataElement.JsonSerializer won't be registered here, since the final class of the data element is not known at this phase.
+		//JSON serializers for EnumDataElement and ListDataElement won't be registered here, since the final class of the data elements is not known at this phase.
 	}
 
 	@Override
 	public Collection<Class<? extends FacesModule>> getDependencies () throws FacesException {
-		return new HashSet<> ();
+		return Arrays.asList (JsonModule.class);
 	}
 
 	@Override
 	public void finish () throws FacesException {
-		DataElementJsonSerializerRegistry.getInstance ().unregisterDataElementClass (BooleanDataElement.class);
 	}
 
 }

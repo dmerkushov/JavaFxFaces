@@ -7,25 +7,30 @@ package ru.dmerkushov.javafx.faces.data.dataelements.ui;
 
 import javafx.scene.Node;
 import javafx.scene.control.Separator;
+import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayer;
 
 /**
  *
  * @author Dmitriy Merkushov <d.merkushov@gmail.com>
  */
-public class SeparatorDataElement extends UiDataElement {
+public class SeparatorDataElement extends UiDataElement<Object> {
 
-	@Override
-	public Node getValueFxNode () {
-		if (valueFxNode == null) {
-			valueFxNode = new Separator ();
-
-		}
-		return valueFxNode;
+	public SeparatorDataElement (String displayName) {
+		super (displayName, Object.class);
 	}
 
-	@Override
-	public Node getValueViewFxNode () {
-		return getValueFxNode ();
+	public static class Displayer implements DataElementDisplayer<SeparatorDataElement> {
+
+		@Override
+		public Node getValueEdit (SeparatorDataElement dataElement) {
+			return new Separator ();
+		}
+
+		@Override
+		public Node getValueView (SeparatorDataElement dataElement) {
+			return new Separator ();
+		}
+
 	}
 
 }

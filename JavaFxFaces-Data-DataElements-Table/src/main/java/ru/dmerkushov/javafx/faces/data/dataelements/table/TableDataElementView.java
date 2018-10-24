@@ -25,8 +25,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.util.Callback;
-import javafx.util.StringConverter;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
+import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayer;
+import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayerRegistry;
 
 /**
  *
@@ -45,13 +46,13 @@ public class TableDataElementView extends TableView {
 		Objects.requireNonNull (tde, "tde");
 
 		this.tde = tde;
-		this.tdp = tde.getCurrentValueProperty ();
+		this.tdp = tde.getCurrentValueProperty ().getValueProperty ();
 
 		TableData td = tdp.getValue ();
 		TableDataRowPattern rp = td.getRowPattern ();
 
 		int tableColumnCount = rp.columnTitles.length;
-		boolean rowsDeletable = tde.getCurrentValueProperty ().getValue ().getRowsDeletableProperty ().getValue ();
+		boolean rowsDeletable = tde.getCurrentValueProperty ().acquireValue ().getRowsDeletableProperty ().getValue ();
 		if (rowsDeletable) {
 			tableColumnCount++;
 		}
@@ -92,18 +93,19 @@ public class TableDataElementView extends TableView {
 			DataElement de = param.getValue ().getDataElement (columnIndex);
 
 			SimpleObjectProperty<String> prop = new SimpleObjectProperty<> ();
-			Bindings.bindBidirectional (prop, de.getCurrentValueProperty (), new StringConverter () {
-				@Override
-				public String toString (Object object) {
-					return de.valueToStoredString (object);
-				}
-
-				@Override
-				public Object fromString (String string) {
-					return de.storedStringToValue (string);
-				}
-			}
-			);
+			prop.bind (de.getCurrentValueDisplayedStringProperty ());
+//			Bindings.bindBidirectional (prop, de.getCurrentValueProperty (), new StringConverter () {
+//				@Override
+//				public String toString (Object object) {
+//					return de.valueToStoredString (object);
+//				}
+//
+//				@Override
+//				public Object fromString (String string) {
+//					return de.storedStringToValue (string);
+//				}
+//			}
+//			);
 
 			return prop;
 		}
@@ -158,6 +160,9 @@ public class TableDataElementView extends TableView {
 			}
 		}
 
+		private Node deEdit;
+		private Node deView;
+
 		protected void resetGraphic () {
 			TableRow row = this.getTableRow ();
 			if (row == null) {
@@ -182,12 +187,22 @@ public class TableDataElementView extends TableView {
 			Node view;
 
 			if (isEditing ()) {
-				view = de.getValueFxNode ();
+				if (deEdit == null) {
+					DataElementDisplayer displayer = DataElementDisplayerRegistry.getInstance ().getDisplayer (de);
+					Objects.requireNonNull (displayer, "displayer for " + de);
+					deEdit = displayer.getValueEdit (de);
+				}
+				view = deEdit;
 				Platform.runLater (() -> {
 					view.requestFocus ();
 				});
 			} else {
-				view = de.getValueViewFxNode ();
+				if (deView == null) {
+					DataElementDisplayer displayer = DataElementDisplayerRegistry.getInstance ().getDisplayer (de);
+					Objects.requireNonNull (displayer, "displayer for " + de);
+					deView = displayer.getValueView (de);
+				}
+				view = deView;
 			}
 
 			setGraphic (view);
@@ -217,7 +232,7 @@ public class TableDataElementView extends TableView {
 					if (tde.getRows ().size () > rowIndex) {
 
 						TableDataRow row = tde.getRows ().get (rowIndex);
-						TableDataRowDeleteFilter filter = tde.getCurrentValueProperty ().getValue ().getDeleteFilterProperty ().getValue ();
+						TableDataRowDeleteFilter filter = tde.getCurrentValueProperty ().acquireValue ().getDeleteFilterProperty ().getValue ();
 						if (filter != null && !filter.canDelete (row)) {
 							return;
 						}

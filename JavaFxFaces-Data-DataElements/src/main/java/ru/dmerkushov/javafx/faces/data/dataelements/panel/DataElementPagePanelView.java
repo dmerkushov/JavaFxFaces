@@ -6,6 +6,7 @@
 package ru.dmerkushov.javafx.faces.data.dataelements.panel;
 
 import java.util.ArrayList;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Border;
@@ -13,6 +14,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import ru.dmerkushov.javafx.faces.FacesUtil;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
+import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayerRegistry;
 import ru.dmerkushov.javafx.faces.panels.FacesPanelView;
 
 /**
@@ -48,11 +50,14 @@ public class DataElementPagePanelView extends FacesPanelView {
 		for (int i = 0; i < dataElements.size (); i++) {
 			DataElement dataElement = dataElements.get (i);
 
+			Node titleNode = DataElementDisplayerRegistry.getInstance ().getDisplayer (dataElement).getTitle (dataElement);
+			Node valueEditNode = DataElementDisplayerRegistry.getInstance ().getDisplayer (dataElement).getValueEdit (dataElement);
+
 			if (depPanel.getPageType () == DataElementPageType.GRID) {
-				grid.add (dataElement.getTitleFxNode (), 0, i);
-				grid.add (dataElement.getValueFxNode (), 1, i);
+				grid.add (titleNode, 0, i);
+				grid.add (valueEditNode, 1, i);
 			} else {
-				vbox.getChildren ().addAll (dataElement.getTitleFxNode (), dataElement.getValueFxNode ());
+				vbox.getChildren ().addAll (titleNode, valueEditNode);
 			}
 		}
 
