@@ -138,7 +138,7 @@ public final class TableData {
 			JsonArray rowJa = rowsJa.getJsonArray (i);
 			DataElement[] des = new DataElement[rowJa.size ()];
 			for (int j = 0; j < rowJa.size (); j++) {
-				des[j] = DataElementJsonSerializerRegistry.getInstance ().deserialize (rowJa.getJsonObject (j), null);
+				des[j] = DataElementJsonSerializerRegistry.getInstance ().deserialize (rowJa.getJsonObject (j));
 			}
 			TableDataRow tdr = td.prepareRow (des);
 			td.getRows ().add (tdr);

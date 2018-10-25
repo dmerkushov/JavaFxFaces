@@ -16,6 +16,7 @@ import javafx.scene.image.Image;
 import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayer;
 import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayerRegistry;
 import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
+import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProviderRegistry;
 import ru.dmerkushov.javafx.faces.panels.FacesPanel;
 import ru.dmerkushov.javafx.faces.panels.FacesPanelView;
 
@@ -45,11 +46,6 @@ public abstract class DataElement<T> extends FacesPanel {
 	 * The default value for the data element
 	 */
 	private T defaultValue;
-
-	/**
-	 * Persistence provider for the data element
-	 */
-	private DataElementPersistenceProvider persistenceProvider;
 
 	private ObjectProperty<String> currentValueDisplayedStringProperty;
 
@@ -117,14 +113,6 @@ public abstract class DataElement<T> extends FacesPanel {
 		return currentValueDisplayedStringProperty;
 	}
 
-	public DataElementPersistenceProvider getPersistenceProvider () {
-		return persistenceProvider;
-	}
-
-	public void setPersistenceProvider (DataElementPersistenceProvider persistenceProvider) {
-		this.persistenceProvider = persistenceProvider;
-	}
-
 	private UUID panelInstanceUuid = UUID.randomUUID ();
 
 	@Override
@@ -150,6 +138,10 @@ public abstract class DataElement<T> extends FacesPanel {
 	@Override
 	public String getToolTip () {
 		return elementTitle;
+	}
+
+	public DataElementPersistenceProvider getPersistenceProvider () {
+		return DataElementPersistenceProviderRegistry.getInstance ().getPersistenceProvider (elementId);
 	}
 
 	@Override

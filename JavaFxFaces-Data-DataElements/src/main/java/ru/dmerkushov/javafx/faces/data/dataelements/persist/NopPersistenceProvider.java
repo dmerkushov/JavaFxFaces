@@ -5,25 +5,25 @@
  */
 package ru.dmerkushov.javafx.faces.data.dataelements.persist;
 
-import ru.dmerkushov.javafx.faces.data.dataelements.DataElementValueProperty;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 
 /**
  *
  * @author Dmitriy Merkushov <d.merkushov@gmail.com>
  */
-public class NopPersistenceProvider<T extends Object, DEVP extends DataElementValueProperty<T>> implements DataElementPersistenceProvider<T, DEVP> {
-
-	public NopPersistenceProvider () {
-	}
+public class NopPersistenceProvider implements DataElementPersistenceProvider {
 
 	@Override
-	public void load (String elementId, DEVP valueProperty) {
+	public void save (String elementId, JsonObject json) {
 		// Do nothing
 	}
 
 	@Override
-	public void save (String elementId, DEVP valueProperty) {
-		// Do nothing
+	public JsonObject load (String elementId) {
+		JsonObjectBuilder job = Json.createObjectBuilder ();
+		return job.build ();
 	}
 
 }

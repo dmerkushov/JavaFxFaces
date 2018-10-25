@@ -143,7 +143,7 @@ public class DataElementJsonSerializerImpl<DE extends DataElement<DET>, DET> imp
 	}
 
 	@Override
-	public final DE deserialize (JsonObject json, DataElementPersistenceProvider persistenceProvider) {
+	public final DE deserialize (JsonObject json) {
 		Objects.requireNonNull (json, "json");
 //		Objects.requireNonNull (persistenceProvider, "persistenceProvider");
 
@@ -170,9 +170,6 @@ public class DataElementJsonSerializerImpl<DE extends DataElement<DET>, DET> imp
 					break;
 				case "defaultValue":
 					defValueIndex = i;
-					break;
-				case "persistenceProvider":
-					constructorParameters[i] = persistenceProvider;
 					break;
 				default:
 					throw new DataElementSerializerException ("Unknown constructor parameter: " + constructorParameterNames[i]);

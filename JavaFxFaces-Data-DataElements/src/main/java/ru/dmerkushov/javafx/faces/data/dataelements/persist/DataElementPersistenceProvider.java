@@ -5,7 +5,7 @@
  */
 package ru.dmerkushov.javafx.faces.data.dataelements.persist;
 
-import ru.dmerkushov.javafx.faces.data.dataelements.DataElementValueProperty;
+import javax.json.JsonObject;
 
 /**
  *
@@ -13,10 +13,24 @@ import ru.dmerkushov.javafx.faces.data.dataelements.DataElementValueProperty;
  * @param <DE> Data element type to which this persistence provider is
  * specialized
  */
-public interface DataElementPersistenceProvider<T extends Object, DEVP extends DataElementValueProperty<T>> {
+public interface DataElementPersistenceProvider {
 
-	public void load (String elementId, DEVP valueProperty);
+	/**
+	 * Save the JSON representation of a data element. May throw a
+	 * {@link DataElementPersistenceProviderException}
+	 *
+	 * @param elementId
+	 * @param json
+	 */
+	public void save (String elementId, JsonObject json);
 
-	public void save (String elementId, DEVP valueProperty);
+	/**
+	 * Load a JSON representation of a data element. May throw a
+	 * {@link DataElementPersistenceProviderException}. May not return null
+	 *
+	 * @param elementId
+	 * @return
+	 */
+	public JsonObject load (String elementId);
 
 }

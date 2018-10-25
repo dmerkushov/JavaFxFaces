@@ -233,7 +233,7 @@ public class TableDataElement extends DataElement<TableData> {
 					System.out.println ("Serialized: " + jsonStr);
 
 					try {
-						TableDataElement tde2 = (TableDataElement) DataElementJsonSerializerRegistry.getInstance ().deserialize (jsonStr, null);
+						TableDataElement tde2 = (TableDataElement) DataElementJsonSerializerRegistry.getInstance ().deserialize (jsonStr);
 					} catch (ClassNotFoundException ex) {
 						throw new DataElementSerializerException (ex);
 					}

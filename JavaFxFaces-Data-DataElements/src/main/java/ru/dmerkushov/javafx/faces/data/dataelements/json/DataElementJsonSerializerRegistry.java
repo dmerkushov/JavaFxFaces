@@ -12,7 +12,6 @@ import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import javax.json.stream.JsonParsingException;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
-import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
 
 /**
  *
@@ -42,25 +41,33 @@ public class DataElementJsonSerializerRegistry {
 	}
 	////////////////////////////////////////////////////////////////////////////
 
-	private final Map<Class<? extends DataElement>, DataElementJsonSerializer> serializers = new HashMap<> ();
+	private final Map<Class<? extends DataElement>, DataElementJsonSerializer> serializersByClass = new HashMap<> ();
+	private final Map<String, DataElementJsonSerializer> serializersByElementId = new HashMap<> ();
 
 	public <DE extends DataElement> void registerSerializer (Class<DE> clazz, DataElementJsonSerializer<DE> serializer) {
 		Objects.requireNonNull (clazz, "clazz");
 		Objects.requireNonNull (serializer, "serializer");
 
-		serializers.put (clazz, serializer);
+		serializersByClass.put (clazz, serializer);
 	}
 
 	public <T extends DataElement> void unregisterDataElementClass (Class<T> clazz) {
 		Objects.requireNonNull (clazz, "clazz");
 
-		serializers.remove (clazz);
+		serializersByClass.remove (clazz);
+	}
+
+	public <DE extends DataElement> void registerSerializer (String elementId, DataElementJsonSerializer<DE> serializer) {
+		Objects.requireNonNull (elementId, "elementId");
+		Objects.requireNonNull (serializer, "serializer");
+
+		serializersByElementId.put (elementId, serializer);
 	}
 
 	public <DE extends DataElement> void unregisterSerializer (DataElementJsonSerializer<DE> serializer) {
 		Objects.requireNonNull (serializer, "serializer");
 
-		Iterator<Entry<Class<? extends DataElement>, DataElementJsonSerializer>> iter = serializers.entrySet ().iterator ();
+		Iterator<Entry<Class<? extends DataElement>, DataElementJsonSerializer>> iter = serializersByClass.entrySet ().iterator ();
 
 		while (iter.hasNext ()) {
 			Entry<Class<? extends DataElement>, DataElementJsonSerializer> entry = iter.next ();
@@ -71,14 +78,33 @@ public class DataElementJsonSerializerRegistry {
 		}
 	}
 
+	/**
+	 * Get serializer by class
+	 *
+	 * @param <DE>
+	 * @param clazz
+	 * @return
+	 */
 	public <DE extends DataElement> DataElementJsonSerializer<DE> getSerializer (Class<DE> clazz) {
 		Objects.requireNonNull (clazz, "clazz");
 
-		return serializers.get (clazz);
+		return serializersByClass.get (clazz);
 	}
 
-	public DataElement deserialize (JsonObject dataElementJson, DataElementPersistenceProvider persistenceProvider) throws ClassNotFoundException {
+	public DataElementJsonSerializer getSerializer (String elementId) {
+		Objects.requireNonNull (elementId, "elementId");
+
+		return serializersByElementId.get (elementId);
+	}
+
+	public DataElement deserialize (JsonObject dataElementJson) throws ClassNotFoundException {
 		Objects.requireNonNull (dataElementJson, "dataElementJson");
+
+		String elementId = dataElementJson.getString ("elementId", "");
+		DataElementJsonSerializer serializer = getSerializer (elementId);
+		if (serializer != null) {
+			return serializer.deserialize (dataElementJson);
+		}
 
 		String className = dataElementJson.getString ("dataElementClass", "");
 		if (className.equals ("")) {
@@ -91,16 +117,16 @@ public class DataElementJsonSerializerRegistry {
 			throw new DataElementSerializerException ("data element class does not extend DataElement: " + clazz.getCanonicalName ());
 		}
 
-		DataElementJsonSerializer serializer = getSerializer (clazz);
+		serializer = getSerializer (clazz);
 
 		if (serializer == null) {
 			throw new DataElementSerializerException ("No DataElement serializer registered for class " + clazz);
 		}
 
-		return serializer.deserialize (dataElementJson, persistenceProvider);
+		return serializer.deserialize (dataElementJson);
 	}
 
-	public DataElement deserialize (String dataElementJsonStr, DataElementPersistenceProvider persistenceProvider) throws ClassNotFoundException {
+	public DataElement deserialize (String dataElementJsonStr) throws ClassNotFoundException {
 		Objects.requireNonNull (dataElementJsonStr, "dataElementJsonStr");
 
 		JsonObject json;
@@ -112,7 +138,7 @@ public class DataElementJsonSerializerRegistry {
 		} catch (RuntimeException ex) {
 			throw new DataElementSerializerException (ex);
 		}
-		return DataElementJsonSerializerRegistry.this.deserialize (json, persistenceProvider);
+		return DataElementJsonSerializerRegistry.this.deserialize (json);
 	}
 
 	public JsonObject serialize (DataElement dataElement) {
@@ -127,6 +153,7 @@ public class DataElementJsonSerializerRegistry {
 		JsonObjectBuilder job = serializer.serialize (dataElement);
 
 		job.add ("dataElementClass", dataElement.getClass ().getCanonicalName ());
+		job.add ("elementId", dataElement.elementId);
 
 		return job.build ();
 	}

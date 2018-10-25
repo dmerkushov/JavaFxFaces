@@ -11,9 +11,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import javax.json.JsonObject;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
+import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializer;
+import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializerRegistry;
 import ru.dmerkushov.javafx.faces.data.dataelements.panel.DataElementPagePanel;
 import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProvider;
+import ru.dmerkushov.javafx.faces.data.dataelements.persist.DataElementPersistenceProviderRegistry;
 
 /**
  *
@@ -59,9 +63,11 @@ public class DataElementRegistry {
 				throw new IllegalStateException ("A data element with id " + dataElement.elementId + " is already registered");
 			}
 
-			DataElementPersistenceProvider persistenceProvider = dataElement.getPersistenceProvider ();
+			DataElementPersistenceProvider persistenceProvider = DataElementPersistenceProviderRegistry.getInstance ().getPersistenceProvider (dataElement.elementId);
 			if (persistenceProvider != null) {
-				persistenceProvider.load (dataElement.elementId, dataElement.getCurrentValueProperty ());
+				JsonObject deJson = persistenceProvider.load (dataElement.elementId);
+				DataElementJsonSerializer jsonSerializer = DataElementJsonSerializerRegistry.getInstance ().getSerializer (dataElement.getClass ());
+				dataElement = jsonSerializer.deserialize (deJson);
 			}
 			dataElements.put (dataElement.elementId, dataElement);
 
@@ -105,7 +111,7 @@ public class DataElementRegistry {
 			dataElementColl = dataElements.values ();
 		}
 		dataElementColl.stream ().filter ((de) -> {
-			return de.getPersistenceProvider () != null;
+			return DataElementPersistenceProviderRegistry.getInstance ().getPersistenceProvider (de.elementId) != null;
 		}).forEach ((de) -> {
 			de.getPersistenceProvider ().save (de.elementId, de.getCurrentValueProperty ());
 		});
