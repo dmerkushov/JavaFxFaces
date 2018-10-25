@@ -140,7 +140,7 @@ public abstract class DataElement<T> extends FacesPanel {
 		return elementTitle;
 	}
 
-	public DataElementPersistenceProvider getPersistenceProvider () {
+	public final DataElementPersistenceProvider getPersistenceProvider () {
 		return DataElementPersistenceProviderRegistry.getInstance ().getPersistenceProvider (elementId);
 	}
 
