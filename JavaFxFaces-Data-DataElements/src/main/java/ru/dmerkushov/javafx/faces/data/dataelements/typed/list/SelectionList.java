@@ -5,14 +5,22 @@
  */
 package ru.dmerkushov.javafx.faces.data.dataelements.typed.list;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 
 /**
  *
@@ -170,5 +178,67 @@ public class SelectionList<LDEI extends ListDataElementItem> extends SimpleListP
 		}
 
 		return super.addAll (elements);
+	}
+
+	public static JsonObject toJson (SelectionList value) {
+		Objects.requireNonNull (value, "value");
+
+		JsonObjectBuilder job = Json.createObjectBuilder ();
+
+		JsonArrayBuilder jab = Json.createArrayBuilder ();
+		for (Object item : value) {
+			jab.add (((ListDataElementItem) item).getContainedAsStoredString ());
+		}
+
+		job.add ("items", jab);
+
+		if (!value.isEmpty ()) {
+			ListDataElementItem selection = value.getSelection ();
+			if (selection == null) {
+				selection = (ListDataElementItem) value.get (0);
+			}
+			job.add ("selected", selection.getContainedAsStoredString ());
+			job.add ("itemClass", selection.getClass ().getCanonicalName ());
+		}
+
+		return job.build ();
+	}
+
+	public static <LI extends ListDataElementItem> SelectionList fromJson (JsonObject json) {
+		if (json == null) {
+			return new SelectionList ();
+		}
+
+		SelectionList<LI> sl = new SelectionList<> ();
+
+		try {
+			JsonArray itemsArr = json.getJsonArray ("items");
+
+			if (!itemsArr.isEmpty ()) {
+				String className = json.getString ("itemClass", "java.lang.String");
+				Class clazz = Class.forName (className);
+				Constructor constr = clazz.getConstructor (String.class);
+
+				for (int i = 0; i < itemsArr.size (); i++) {
+					String itemStr = itemsArr.getString (i);
+					LI itemLi = (LI) constr.newInstance (itemStr);
+					sl.add (itemLi);
+				}
+
+				String selectedValueStr = json.getString ("selected");
+				LI selectedValueLi = (LI) constr.newInstance (selectedValueStr);
+				sl.setSelection (selectedValueLi);
+			}
+		} catch (ClassNotFoundException
+				| NoSuchMethodException
+				| SecurityException
+				| InstantiationException
+				| IllegalAccessException
+				| IllegalArgumentException
+				| InvocationTargetException ex) {
+			throw new ListDataElementException (ex);
+		}
+
+		return sl;
 	}
 }

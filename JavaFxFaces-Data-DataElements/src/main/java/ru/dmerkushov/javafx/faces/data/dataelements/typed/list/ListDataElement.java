@@ -5,8 +5,6 @@
  */
 package ru.dmerkushov.javafx.faces.data.dataelements.typed.list;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.prefs.Preferences;
@@ -19,11 +17,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListView;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
 import ru.dmerkushov.javafx.faces.FacesConfiguration;
 import ru.dmerkushov.javafx.faces.FacesMain;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
@@ -112,60 +106,12 @@ public class ListDataElement<LI extends ListDataElementItem> extends DataElement
 
 		@Override
 		public JsonObject valueToJson (SelectionList value) {
-			JsonObjectBuilder job = Json.createObjectBuilder ();
-
-			JsonArrayBuilder jab = Json.createArrayBuilder ();
-			for (Object item : value) {
-				jab.add (((ListDataElementItem) item).getContainedAsStoredString ());
-			}
-
-			job.add ("items", jab);
-
-			if (!value.isEmpty ()) {
-				ListDataElementItem selection = value.getSelection ();
-				if (selection == null) {
-					selection = (ListDataElementItem) value.get (0);
-				}
-				job.add ("selected", selection.getContainedAsStoredString ());
-				job.add ("itemClass", selection.getClass ().getCanonicalName ());
-			}
-
-			return job.build ();
+			return SelectionList.toJson (value);
 		}
 
 		@Override
 		public SelectionList jsonToValue (JsonObject json) {
-			SelectionList<LI> sl = new SelectionList<> ();
-
-			try {
-				JsonArray itemsArr = json.getJsonArray ("items");
-
-				if (!itemsArr.isEmpty ()) {
-					String className = json.getString ("itemClass", "java.lang.String");
-					Class clazz = Class.forName (className);
-					Constructor constr = clazz.getConstructor (String.class);
-
-					for (int i = 0; i < itemsArr.size (); i++) {
-						String itemStr = itemsArr.getString (i);
-						LI itemLi = (LI) constr.newInstance (itemStr);
-						sl.add (itemLi);
-					}
-
-					String selectedValueStr = json.getString ("selected");
-					LI selectedValueLi = (LI) constr.newInstance (selectedValueStr);
-					sl.setSelection (selectedValueLi);
-				}
-			} catch (ClassNotFoundException
-					| NoSuchMethodException
-					| SecurityException
-					| InstantiationException
-					| IllegalAccessException
-					| IllegalArgumentException
-					| InvocationTargetException ex) {
-				throw new ListDataElementException (ex);
-			}
-
-			return sl;
+			return SelectionList.fromJson (json);
 		}
 
 		@Override
