@@ -24,6 +24,7 @@ import javax.json.JsonObjectBuilder;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElementValueProperty;
 import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayer;
+import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayerRegistry;
 import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializerImpl;
 
 /**
@@ -39,6 +40,8 @@ public class DurationDataElement extends DataElement<Duration> {
 				Duration.class,
 				defaultValue != null ? defaultValue : Duration.ZERO
 		);
+
+		DataElementDisplayerRegistry.getInstance ().registerDisplayer (this, new Displayer ());
 	}
 
 	public DurationDataElement (String elementTitle, String elementId) {
@@ -220,7 +223,7 @@ public class DurationDataElement extends DataElement<Duration> {
 
 		@Override
 		public String valueToDisplayedString (Duration value) {
-			throw new UnsupportedOperationException ("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+			return value.toString ();
 		}
 
 	}
