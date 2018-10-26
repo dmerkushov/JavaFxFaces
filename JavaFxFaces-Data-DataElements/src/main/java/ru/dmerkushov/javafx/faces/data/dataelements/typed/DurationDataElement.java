@@ -195,6 +195,10 @@ public class DurationDataElement extends DataElement<Duration> {
 
 		@Override
 		public JsonObject valueToJson (Duration value) {
+			if (value == null) {
+				return Json.createObjectBuilder ().build ();
+			}
+
 			int secondsOfMinute = (int) (value.getSeconds () % 60);
 			int minutesOfHour = (int) (value.getSeconds () / 60 % 60);
 			int hoursOfDay = (int) (value.getSeconds () / 3600 % 24);
@@ -212,10 +216,19 @@ public class DurationDataElement extends DataElement<Duration> {
 
 		@Override
 		public Duration jsonToValue (JsonObject json) {
-			int secondsOfMinute = json.getInt ("secondsOfMinute");
-			int minutesOfHour = json.getInt ("minutesOfHour");
-			int hoursOfDay = json.getInt ("hoursOfDay");
-			long days = json.getJsonNumber ("days").longValue ();
+			if (json == null) {
+				return Duration.ZERO;
+			}
+
+			int secondsOfMinute = json.getInt ("secondsOfMinute", 0);
+			int minutesOfHour = json.getInt ("minutesOfHour", 0);
+			int hoursOfDay = json.getInt ("hoursOfDay", 0);
+			long days;
+			try {
+				days = json.getJsonNumber ("days").longValue ();
+			} catch (NullPointerException ex) {
+				days = 0L;
+			}
 
 			Duration d = Duration.ZERO.plusDays (days).plusHours (hoursOfDay).plusMinutes (minutesOfHour).plusSeconds (secondsOfMinute);
 			return d;
