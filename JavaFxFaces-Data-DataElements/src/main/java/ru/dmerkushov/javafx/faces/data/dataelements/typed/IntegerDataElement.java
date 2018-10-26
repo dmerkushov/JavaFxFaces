@@ -52,7 +52,9 @@ public class IntegerDataElement extends DataElement<Integer> {
 
 		@Override
 		public Integer jsonToValue (JsonObject json) {
-			Objects.requireNonNull (json, "json");
+			if (json == null) {
+				return 0;
+			}
 
 			return json.getInt ("value", 0);
 		}
@@ -60,7 +62,11 @@ public class IntegerDataElement extends DataElement<Integer> {
 		@Override
 		public JsonObject valueToJson (Integer value) {
 			JsonObjectBuilder job = Json.createObjectBuilder ();
-			job.add ("value", value);
+			if (value == null) {
+				job.addNull ("value");
+			} else {
+				job.add ("value", value);
+			}
 			return job.build ();
 		}
 
