@@ -116,8 +116,11 @@ public class DataElementRegistry {
 		}
 		dataElementColl.stream ().filter ((de) -> {
 			return DataElementPersistenceProviderRegistry.getInstance ().getPersistenceProvider (de.elementId) != null;
+		}).filter ((de) -> {
+			return (DataElementJsonSerializerRegistry.getInstance ().getSerializer (de.elementId) != null
+					|| DataElementJsonSerializerRegistry.getInstance ().getSerializer ((Class<DataElement>) de.getClass ()) != null);
 		}).forEach ((de) -> {
-			de.getPersistenceProvider ().save (de.elementId, de.getCurrentValueProperty ());
+			de.getPersistenceProvider ().save (de.elementId, DataElementJsonSerializerRegistry.getInstance ().serialize (de));
 		});
 	}
 
