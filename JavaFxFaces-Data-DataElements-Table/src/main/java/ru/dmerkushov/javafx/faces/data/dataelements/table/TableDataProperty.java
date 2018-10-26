@@ -15,7 +15,7 @@ import ru.dmerkushov.javafx.faces.data.dataelements.DataElementValueProperty;
  */
 public class TableDataProperty extends DataElementValueProperty<TableData> {
 
-	TableDataProperty (TableData tableData) {
+	public TableDataProperty (TableData tableData) {
 		super (TableData.class);
 
 		getValueProperty ().set (tableData);
