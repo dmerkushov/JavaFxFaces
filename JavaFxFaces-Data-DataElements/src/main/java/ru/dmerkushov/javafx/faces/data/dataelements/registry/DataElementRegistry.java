@@ -66,8 +66,12 @@ public class DataElementRegistry {
 			DataElementPersistenceProvider persistenceProvider = DataElementPersistenceProviderRegistry.getInstance ().getPersistenceProvider (dataElement.elementId);
 			if (persistenceProvider != null) {
 				JsonObject deJson = persistenceProvider.load (dataElement.elementId);
-				DataElementJsonSerializer jsonSerializer = DataElementJsonSerializerRegistry.getInstance ().getSerializer (dataElement.getClass ());
-				dataElement = jsonSerializer.deserialize (deJson);
+				if (deJson != null) {
+					DataElementJsonSerializer jsonSerializer = DataElementJsonSerializerRegistry.getInstance ().getSerializer (dataElement.getClass ());
+					if (jsonSerializer != null) {
+						dataElement = jsonSerializer.deserialize (deJson);
+					}
+				}
 			}
 			dataElements.put (dataElement.elementId, dataElement);
 
