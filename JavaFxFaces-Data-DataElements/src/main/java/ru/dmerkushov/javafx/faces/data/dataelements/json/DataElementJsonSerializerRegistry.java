@@ -88,7 +88,12 @@ public class DataElementJsonSerializerRegistry {
 	public <DE extends DataElement> DataElementJsonSerializer<DE> getSerializer (Class<DE> clazz) {
 		Objects.requireNonNull (clazz, "clazz");
 
-		return serializersByClass.get (clazz);
+		Class currentClass = clazz;
+		while (serializersByClass.get (currentClass) == null && currentClass != Object.class) {
+			currentClass = currentClass.getSuperclass ();
+		}
+
+		return serializersByClass.get (currentClass);
 	}
 
 	public DataElementJsonSerializer getSerializer (String elementId) {
