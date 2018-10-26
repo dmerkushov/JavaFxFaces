@@ -34,6 +34,9 @@ public class LabelDataElement extends UiDataElement<String> {
 	private ValueProperty currentValueProperty;
 
 	public ValueProperty getCurrentValueProperty () {
+		if (currentValueProperty == null) {
+			currentValueProperty = new ValueProperty ();
+		}
 		return currentValueProperty;
 	}
 
