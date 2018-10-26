@@ -73,13 +73,13 @@ public abstract class ListDataElementItem<T> {
 	/**
 	 * Use the contained value's <b>toString()</b>, so it is used in the list
 	 *
-	 * See also {@link Object#toString() }
-	 *
 	 * @return
+	 * @see Object#toString()
+	 * @see Objects#toString(java.lang.Object)
 	 */
 	@Override
 	public String toString () {
-		return String.valueOf (contained);
+		return Objects.toString (contained);
 	}
 
 	@Override
