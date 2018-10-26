@@ -14,6 +14,7 @@ import javafx.collections.ListChangeListener;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -183,12 +184,7 @@ public class ListDataElement<LI extends ListDataElementItem> extends DataElement
 
 		@Override
 		public Node getValueView (ListDataElement<LI> dataElement) {
-			throw new UnsupportedOperationException ("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-		}
-
-		@Override
-		public Node getTitle (ListDataElement<LI> dataElement) {
-			throw new UnsupportedOperationException ("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+			return new Label (((LI) getCurrentValueProperty ().acquireValue ().getSelection ().getContained ()).toString ());
 		}
 	}
 
