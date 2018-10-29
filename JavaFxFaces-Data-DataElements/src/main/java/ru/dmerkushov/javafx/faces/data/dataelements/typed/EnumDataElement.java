@@ -49,6 +49,10 @@ public class EnumDataElement<LI extends ListDataElementItem> extends ListDataEle
 			for (Object value : names) {
 				EnumListDataElementItem eldei = new EnumListDataElementItem ((Enum) value);
 				sl.add (eldei);
+
+				if (value.equals (defaultValue)) {
+					sl.setSelection (eldei);
+				}
 			}
 		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | RuntimeException ex) {
 			throw new DataElementException (ex);
