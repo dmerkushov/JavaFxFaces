@@ -22,7 +22,7 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
-import ru.dmerkushov.javafx.faces.data.dataelements.DataElementValueProperty;
+import ru.dmerkushov.javafx.faces.data.dataelements.DataElementJsonValueProperty;
 import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayer;
 import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayerRegistry;
 import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializerImpl;
@@ -48,21 +48,21 @@ public class DurationDataElement extends DataElement<Duration> {
 		this (elementTitle, elementId, Duration.ZERO);
 	}
 
-	private ValueProperty currentValueProperty;
+	private JsonValueProperty currentValueProperty;
 
 	@Override
-	public ValueProperty getCurrentValueProperty () {
+	public JsonValueProperty jsonValueProperty () {
 		if (currentValueProperty == null) {
-			currentValueProperty = new ValueProperty (Duration.class);
+			currentValueProperty = new JsonValueProperty ();
 		}
 		return currentValueProperty;
 	}
 
-	public static class ValueProperty extends DataElementValueProperty<Duration> {
+	public static class JsonValueProperty extends DataElementJsonValueProperty<Duration> {
 
-		public ValueProperty (Class<Duration> valueClass) {
-			super (valueClass);
-			this.getValueProperty ().set (Duration.ZERO);
+		public JsonValueProperty () {
+			super (Duration.class);
+			this.valueProperty ().set (Duration.ZERO);
 		}
 
 		private LongProperty daysProperty;
@@ -70,8 +70,8 @@ public class DurationDataElement extends DataElement<Duration> {
 		public LongProperty getDaysProperty () {
 			if (daysProperty == null) {
 				daysProperty = new SimpleLongProperty ();
-				daysProperty.set (getValueProperty ().get ().getSeconds () / 3600 / 24);
-				getValueProperty ().addListener ((ObservableValue<? extends Duration> observable1, Duration oldValue, Duration newValue) -> {
+				daysProperty.set (valueProperty ().get ().getSeconds () / 3600 / 24);
+				valueProperty ().addListener ((ObservableValue<? extends Duration> observable1, Duration oldValue, Duration newValue) -> {
 					if (Objects.equals (oldValue, newValue)) {
 						return;
 					}
@@ -82,7 +82,7 @@ public class DurationDataElement extends DataElement<Duration> {
 						return;
 					}
 
-					Duration current = getValueProperty ().get ();
+					Duration current = valueProperty ().get ();
 
 					long currentDays = current.getSeconds () / 3600 / 24;
 					if (Objects.equals (currentDays, newValue)) {
@@ -91,7 +91,7 @@ public class DurationDataElement extends DataElement<Duration> {
 
 					Duration newD = current.minusDays (currentDays).plusDays (newValue.longValue ());
 
-					getValueProperty ().set (newD);
+					valueProperty ().set (newD);
 				});
 			}
 			return daysProperty;
@@ -102,19 +102,19 @@ public class DurationDataElement extends DataElement<Duration> {
 		public IntegerProperty getHoursOfDayProperty () {
 			if (hoursOfDayProperty == null) {
 				hoursOfDayProperty = new SimpleIntegerProperty ();
-				hoursOfDayProperty.set ((int) (getValueProperty ().get ().getSeconds () / 3600 % 24));
-				getValueProperty ().addListener ((ObservableValue<? extends Duration> observable1, Duration oldValue, Duration newValue) -> {
+				hoursOfDayProperty.set ((int) (valueProperty ().get ().getSeconds () / 3600 % 24));
+				valueProperty ().addListener ((ObservableValue<? extends Duration> observable1, Duration oldValue, Duration newValue) -> {
 					if (Objects.equals (oldValue, newValue)) {
 						return;
 					}
-					hoursOfDayProperty.set ((int) (getValueProperty ().get ().getSeconds () / 3600 % 24));
+					hoursOfDayProperty.set ((int) (valueProperty ().get ().getSeconds () / 3600 % 24));
 				});
 				hoursOfDayProperty.addListener ((ObservableValue<? extends Number> io, Number oldValue, Number newValue) -> {
 					if (Objects.equals (oldValue, newValue)) {
 						return;
 					}
 
-					Duration current = getValueProperty ().get ();
+					Duration current = valueProperty ().get ();
 
 					int currentHours = (int) (current.getSeconds () / 3600 % 24);
 					if (Objects.equals (currentHours, newValue)) {
@@ -123,7 +123,7 @@ public class DurationDataElement extends DataElement<Duration> {
 
 					Duration newD = current.minusHours (currentHours).plusHours (newValue.longValue ());
 
-					getValueProperty ().set (newD);
+					valueProperty ().set (newD);
 				});
 			}
 			return hoursOfDayProperty;
@@ -134,19 +134,19 @@ public class DurationDataElement extends DataElement<Duration> {
 		public IntegerProperty getMinutesOfHourProperty () {
 			if (minutesOfHourProperty == null) {
 				minutesOfHourProperty = new SimpleIntegerProperty ();
-				minutesOfHourProperty.set ((int) (getValueProperty ().get ().getSeconds () / 60 % 60));
-				getValueProperty ().addListener ((ObservableValue<? extends Duration> observable1, Duration oldValue, Duration newValue) -> {
+				minutesOfHourProperty.set ((int) (valueProperty ().get ().getSeconds () / 60 % 60));
+				valueProperty ().addListener ((ObservableValue<? extends Duration> observable1, Duration oldValue, Duration newValue) -> {
 					if (Objects.equals (oldValue, newValue)) {
 						return;
 					}
-					minutesOfHourProperty.set ((int) (getValueProperty ().get ().getSeconds () / 60 % 60));
+					minutesOfHourProperty.set ((int) (valueProperty ().get ().getSeconds () / 60 % 60));
 				});
 				minutesOfHourProperty.addListener ((ObservableValue<? extends Number> io, Number oldValue, Number newValue) -> {
 					if (Objects.equals (oldValue, newValue)) {
 						return;
 					}
 
-					Duration current = getValueProperty ().get ();
+					Duration current = valueProperty ().get ();
 
 					int currentMinutes = (int) (current.getSeconds () / 60 % 60);
 					if (Objects.equals (currentMinutes, newValue)) {
@@ -155,7 +155,7 @@ public class DurationDataElement extends DataElement<Duration> {
 
 					Duration newD = current.minusMinutes (currentMinutes).plusMinutes (newValue.longValue ());
 
-					getValueProperty ().set (newD);
+					valueProperty ().set (newD);
 				});
 			}
 			return minutesOfHourProperty;
@@ -166,19 +166,19 @@ public class DurationDataElement extends DataElement<Duration> {
 		public IntegerProperty getSecondsOfMinuteProperty () {
 			if (secondsOfMinuteProperty == null) {
 				secondsOfMinuteProperty = new SimpleIntegerProperty ();
-				secondsOfMinuteProperty.set ((int) (getValueProperty ().get ().getSeconds () % 60));
-				getValueProperty ().addListener ((ObservableValue<? extends Duration> observable1, Duration oldValue, Duration newValue) -> {
+				secondsOfMinuteProperty.set ((int) (valueProperty ().get ().getSeconds () % 60));
+				valueProperty ().addListener ((ObservableValue<? extends Duration> observable1, Duration oldValue, Duration newValue) -> {
 					if (Objects.equals (oldValue, newValue)) {
 						return;
 					}
-					secondsOfMinuteProperty.set ((int) (getValueProperty ().get ().getSeconds () % 60));
+					secondsOfMinuteProperty.set ((int) (valueProperty ().get ().getSeconds () % 60));
 				});
 				secondsOfMinuteProperty.addListener ((ObservableValue<? extends Number> io, Number oldValue, Number newValue) -> {
 					if (Objects.equals (oldValue, newValue)) {
 						return;
 					}
 
-					Duration current = getValueProperty ().get ();
+					Duration current = valueProperty ().get ();
 
 					int currentSeconds = (int) (current.getSeconds () % 60);
 					if (Objects.equals (currentSeconds, newValue)) {
@@ -187,7 +187,7 @@ public class DurationDataElement extends DataElement<Duration> {
 
 					Duration newD = current.minusSeconds (currentSeconds).plusSeconds (newValue.longValue ());
 
-					getValueProperty ().set (newD);
+					valueProperty ().set (newD);
 				});
 			}
 			return secondsOfMinuteProperty;
@@ -257,13 +257,13 @@ public class DurationDataElement extends DataElement<Duration> {
 			TextField minutesField;
 
 			daysField = new TextField ();
-			daysField.textProperty ().bindBidirectional ((Property<Number>) dataElement.getCurrentValueProperty ().getDaysProperty (), new NumberStringConverter ());
+			daysField.textProperty ().bindBidirectional ((Property<Number>) dataElement.jsonValueProperty ().getDaysProperty (), new NumberStringConverter ());
 
 			hoursField = new TextField ();
-			hoursField.textProperty ().bindBidirectional ((Property<Number>) dataElement.getCurrentValueProperty ().getHoursOfDayProperty (), new NumberStringConverter ());
+			hoursField.textProperty ().bindBidirectional ((Property<Number>) dataElement.jsonValueProperty ().getHoursOfDayProperty (), new NumberStringConverter ());
 
 			minutesField = new TextField ();
-			hoursField.textProperty ().bindBidirectional ((Property<Number>) dataElement.getCurrentValueProperty ().getMinutesOfHourProperty (), new NumberStringConverter ());
+			minutesField.textProperty ().bindBidirectional ((Property<Number>) dataElement.jsonValueProperty ().getMinutesOfHourProperty (), new NumberStringConverter ());
 
 			HBox hb = new HBox ();
 
