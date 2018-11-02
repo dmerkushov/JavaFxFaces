@@ -7,25 +7,37 @@ package ru.dmerkushov.javafx.faces.data.dataelements.typed;
 
 import java.time.Duration;
 import java.util.Objects;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.LongProperty;
-import javafx.beans.property.Property;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.prefs.Preferences;
+import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.ReadOnlyLongProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleLongProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
-import javafx.util.converter.NumberStringConverter;
+import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
+import ru.dmerkushov.javafx.faces.FacesConfiguration;
+import ru.dmerkushov.javafx.faces.FacesMain;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElement;
 import ru.dmerkushov.javafx.faces.data.dataelements.DataElementJsonValueProperty;
+import ru.dmerkushov.javafx.faces.data.dataelements.DataElementsModule;
 import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayer;
 import ru.dmerkushov.javafx.faces.data.dataelements.display.DataElementDisplayerRegistry;
 import ru.dmerkushov.javafx.faces.data.dataelements.json.DataElementJsonSerializerImpl;
+import ru.dmerkushov.javafx.faces.data.dataelements.registry.DataElementRegistry;
+import ru.dmerkushov.javafx.faces.panels.FacesPanels;
+import ru.dmerkushov.prefconf.PrefConf;
 
 /**
  *
@@ -63,134 +75,88 @@ public class DurationDataElement extends DataElement<Duration> {
 		public JsonValueProperty () {
 			super (Duration.class);
 			this.valueProperty ().set (Duration.ZERO);
+
+			valueProperty ().addListener (new ChangeListener<Duration> () {
+				@Override
+				public void changed (ObservableValue<? extends Duration> observable, Duration oldValue, Duration newValue) {
+					alignPropertyValues ();
+				}
+			});
 		}
 
-		private LongProperty daysProperty;
+		private SimpleLongProperty daysProperty;
 
-		public LongProperty getDaysProperty () {
+		public ReadOnlyLongProperty daysProperty () {
 			if (daysProperty == null) {
 				daysProperty = new SimpleLongProperty ();
 				daysProperty.set (valueProperty ().get ().getSeconds () / 3600 / 24);
-				valueProperty ().addListener ((ObservableValue<? extends Duration> observable1, Duration oldValue, Duration newValue) -> {
-					if (Objects.equals (oldValue, newValue)) {
-						return;
-					}
-					daysProperty.set (newValue.getSeconds () / 3600 / 24);
-				});
-				daysProperty.addListener ((ObservableValue<? extends Number> io, Number oldValue, Number newValue) -> {
-					if (Objects.equals (oldValue, newValue)) {
-						return;
-					}
-
-					Duration current = valueProperty ().get ();
-
-					long currentDays = current.getSeconds () / 3600 / 24;
-					if (Objects.equals (currentDays, newValue)) {
-						return;
-					}
-
-					Duration newD = current.minusDays (currentDays).plusDays (newValue.longValue ());
-
-					valueProperty ().set (newD);
-				});
 			}
 			return daysProperty;
 		}
 
-		private IntegerProperty hoursOfDayProperty;
+		private SimpleIntegerProperty hoursOfDayProperty;
 
-		public IntegerProperty getHoursOfDayProperty () {
+		public ReadOnlyIntegerProperty hoursOfDayProperty () {
 			if (hoursOfDayProperty == null) {
 				hoursOfDayProperty = new SimpleIntegerProperty ();
 				hoursOfDayProperty.set ((int) (valueProperty ().get ().getSeconds () / 3600 % 24));
-				valueProperty ().addListener ((ObservableValue<? extends Duration> observable1, Duration oldValue, Duration newValue) -> {
-					if (Objects.equals (oldValue, newValue)) {
-						return;
-					}
-					hoursOfDayProperty.set ((int) (valueProperty ().get ().getSeconds () / 3600 % 24));
-				});
-				hoursOfDayProperty.addListener ((ObservableValue<? extends Number> io, Number oldValue, Number newValue) -> {
-					if (Objects.equals (oldValue, newValue)) {
-						return;
-					}
-
-					Duration current = valueProperty ().get ();
-
-					int currentHours = (int) (current.getSeconds () / 3600 % 24);
-					if (Objects.equals (currentHours, newValue)) {
-						return;
-					}
-
-					Duration newD = current.minusHours (currentHours).plusHours (newValue.longValue ());
-
-					valueProperty ().set (newD);
-				});
 			}
 			return hoursOfDayProperty;
 		}
 
-		private IntegerProperty minutesOfHourProperty;
+		private SimpleIntegerProperty minutesOfHourProperty;
 
-		public IntegerProperty getMinutesOfHourProperty () {
+		public ReadOnlyIntegerProperty minutesOfHourProperty () {
 			if (minutesOfHourProperty == null) {
 				minutesOfHourProperty = new SimpleIntegerProperty ();
 				minutesOfHourProperty.set ((int) (valueProperty ().get ().getSeconds () / 60 % 60));
-				valueProperty ().addListener ((ObservableValue<? extends Duration> observable1, Duration oldValue, Duration newValue) -> {
-					if (Objects.equals (oldValue, newValue)) {
-						return;
-					}
-					minutesOfHourProperty.set ((int) (valueProperty ().get ().getSeconds () / 60 % 60));
-				});
-				minutesOfHourProperty.addListener ((ObservableValue<? extends Number> io, Number oldValue, Number newValue) -> {
-					if (Objects.equals (oldValue, newValue)) {
-						return;
-					}
-
-					Duration current = valueProperty ().get ();
-
-					int currentMinutes = (int) (current.getSeconds () / 60 % 60);
-					if (Objects.equals (currentMinutes, newValue)) {
-						return;
-					}
-
-					Duration newD = current.minusMinutes (currentMinutes).plusMinutes (newValue.longValue ());
-
-					valueProperty ().set (newD);
-				});
 			}
 			return minutesOfHourProperty;
 		}
 
-		private IntegerProperty secondsOfMinuteProperty;
+		private SimpleIntegerProperty secondsOfMinuteProperty;
 
-		public IntegerProperty getSecondsOfMinuteProperty () {
+		public ReadOnlyIntegerProperty secondsOfMinuteProperty () {
 			if (secondsOfMinuteProperty == null) {
 				secondsOfMinuteProperty = new SimpleIntegerProperty ();
+				javafx.scene.control.TextInputControl r;
 				secondsOfMinuteProperty.set ((int) (valueProperty ().get ().getSeconds () % 60));
-				valueProperty ().addListener ((ObservableValue<? extends Duration> observable1, Duration oldValue, Duration newValue) -> {
-					if (Objects.equals (oldValue, newValue)) {
-						return;
-					}
-					secondsOfMinuteProperty.set ((int) (valueProperty ().get ().getSeconds () % 60));
-				});
-				secondsOfMinuteProperty.addListener ((ObservableValue<? extends Number> io, Number oldValue, Number newValue) -> {
-					if (Objects.equals (oldValue, newValue)) {
-						return;
-					}
-
-					Duration current = valueProperty ().get ();
-
-					int currentSeconds = (int) (current.getSeconds () % 60);
-					if (Objects.equals (currentSeconds, newValue)) {
-						return;
-					}
-
-					Duration newD = current.minusSeconds (currentSeconds).plusSeconds (newValue.longValue ());
-
-					valueProperty ().set (newD);
-				});
 			}
 			return secondsOfMinuteProperty;
+		}
+
+		public void setDays (long days) {
+			valueProperty ().set (valueProperty ().get ().minusDays (daysProperty ().get ()).plusDays (days));
+		}
+
+		public void setHoursOfDay (int hours) {
+			valueProperty ().set (valueProperty ().get ().minusHours (hoursOfDayProperty ().get ()).plusHours (hours));
+		}
+
+		public void setMinutesOfHour (int minutes) {
+			valueProperty ().set (valueProperty ().get ().minusMinutes (minutesOfHourProperty ().get ()).plusMinutes (minutes));
+		}
+
+		public void setSecondsOfMinute (int seconds) {
+			valueProperty ().set (valueProperty ().get ().minusSeconds (secondsOfMinuteProperty ().get ()).plusSeconds (seconds));
+		}
+
+		private void alignPropertyValues () {
+			Duration val = valueProperty ().get ();
+
+			long days = val.getSeconds () / 3600 / 24;
+			int hours = (int) (val.getSeconds () / 3600 % 24);
+			int minutes = (int) (val.getSeconds () / 60 % 60);
+			int seconds = (int) (val.getSeconds () % 60);
+
+			daysProperty ();
+			hoursOfDayProperty ();
+			minutesOfHourProperty ();
+			secondsOfMinuteProperty ();
+			daysProperty.set (days);
+			hoursOfDayProperty.set (hours);
+			minutesOfHourProperty.set (minutes);
+			secondsOfMinuteProperty.set (seconds);
 		}
 
 		@Override
@@ -257,31 +223,177 @@ public class DurationDataElement extends DataElement<Duration> {
 			TextField minutesField;
 
 			daysField = new TextField ();
-			daysField.textProperty ().bindBidirectional ((Property<Number>) dataElement.jsonValueProperty ().getDaysProperty (), new NumberStringConverter ());
+			dataElement.jsonValueProperty ().daysProperty ().addListener (new ChangeListener<Number> () {
+				@Override
+				public void changed (ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+					if (Objects.equals (oldValue, newValue)) {
+						return;
+					}
+					daysField.textProperty ().set (Objects.toString (newValue));
+				}
+			});
+			daysField.textProperty ().addListener (new ChangeListener<String> () {
+				@Override
+				public void changed (ObservableValue<? extends String> observable, String oldValue, String newValue) {
+					if (Objects.equals (oldValue, newValue)) {
+						return;
+					}
+
+					Long n;
+					try {
+						n = Long.parseLong (newValue.replaceAll ("[^0-9]", ""));
+					} catch (NumberFormatException ex) {
+						n = 0L;
+					}
+
+					dataElement.jsonValueProperty ().setDays (n);
+				}
+			});
 
 			hoursField = new TextField ();
-			hoursField.textProperty ().bindBidirectional ((Property<Number>) dataElement.jsonValueProperty ().getHoursOfDayProperty (), new NumberStringConverter ());
+			dataElement.jsonValueProperty ().hoursOfDayProperty ().addListener (new ChangeListener<Number> () {
+				@Override
+				public void changed (ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+					if (Objects.equals (oldValue, newValue)) {
+						return;
+					}
+					hoursField.textProperty ().set (Objects.toString (newValue));
+				}
+			});
+			hoursField.textProperty ().addListener (new ChangeListener<String> () {
+				@Override
+				public void changed (ObservableValue<? extends String> observable, String oldValue, String newValue) {
+					if (Objects.equals (oldValue, newValue)) {
+						return;
+					}
+
+					Integer n;
+					try {
+						n = Integer.parseInt (newValue.replaceAll ("[^0-9]", ""));
+					} catch (NumberFormatException ex) {
+						n = 0;
+					}
+
+					dataElement.jsonValueProperty ().setHoursOfDay (n);
+				}
+			});
 
 			minutesField = new TextField ();
-			minutesField.textProperty ().bindBidirectional ((Property<Number>) dataElement.jsonValueProperty ().getMinutesOfHourProperty (), new NumberStringConverter ());
+			dataElement.jsonValueProperty ().minutesOfHourProperty ().addListener (new ChangeListener<Number> () {
+				@Override
+				public void changed (ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+					if (Objects.equals (oldValue, newValue)) {
+						return;
+					}
+					minutesField.textProperty ().set (Objects.toString (newValue));
+				}
+			});
+			minutesField.textProperty ().addListener (new ChangeListener<String> () {
+				@Override
+				public void changed (ObservableValue<? extends String> observable, String oldValue, String newValue) {
+					if (Objects.equals (oldValue, newValue)) {
+						return;
+					}
+
+					Integer n;
+					try {
+						n = Integer.parseInt (newValue.replaceAll ("[^0-9]", ""));
+					} catch (NumberFormatException ex) {
+						n = 0;
+					}
+
+					dataElement.jsonValueProperty ().setMinutesOfHour (n);
+				}
+			});
 
 			HBox hb = new HBox ();
 
 			hb.getChildren ().add (daysField);
-			hb.getChildren ().add (new Label (java.util.ResourceBundle.getBundle ("ru.dmerkushov.javafx.faces.data.dataelements.Bundle").getString ("DURATIONDE_FIELDLABEL_DAYS")));
+			Label fieldLabelDays = new Label (java.util.ResourceBundle.getBundle ("ru.dmerkushov.javafx.faces.data.dataelements.Bundle").getString ("DURATIONDE_FIELDLABEL_DAYS"));
+			hb.getChildren ().add (fieldLabelDays);
 
 			hb.getChildren ().add (hoursField);
-			hb.getChildren ().add (new Label (java.util.ResourceBundle.getBundle ("ru.dmerkushov.javafx.faces.data.dataelements.Bundle").getString ("DURATIONDE_FIELDLABEL_HOURS")));
+			Label fieldLabelHours = new Label (java.util.ResourceBundle.getBundle ("ru.dmerkushov.javafx.faces.data.dataelements.Bundle").getString ("DURATIONDE_FIELDLABEL_HOURS"));
+			hb.getChildren ().add (fieldLabelHours);
 
 			hb.getChildren ().add (minutesField);
-			hb.getChildren ().add (new Label (java.util.ResourceBundle.getBundle ("ru.dmerkushov.javafx.faces.data.dataelements.Bundle").getString ("DURATIONDE_FIELDLABEL_MINUTES")));
+			Label fieldLabelMinutes = new Label (java.util.ResourceBundle.getBundle ("ru.dmerkushov.javafx.faces.data.dataelements.Bundle").getString ("DURATIONDE_FIELDLABEL_MINUTES"));
+			hb.getChildren ().add (fieldLabelMinutes);
 
 			daysField.getStyleClass ().add ("input-durationpart");
+			daysField.getStyleClass ().add ("input-durationpart-days");
+			fieldLabelDays.getStyleClass ().add ("input-durationpart-label");
+			fieldLabelDays.getStyleClass ().add ("input-durationpart-days-label");
+
 			hoursField.getStyleClass ().add ("input-durationpart");
+			hoursField.getStyleClass ().add ("input-durationpart-hours");
+			fieldLabelHours.getStyleClass ().add ("input-durationpart-label");
+			fieldLabelHours.getStyleClass ().add ("input-durationpart-hours-label");
+
 			minutesField.getStyleClass ().add ("input-durationpart");
+			minutesField.getStyleClass ().add ("input-durationpart-minutes");
+			fieldLabelHours.getStyleClass ().add ("input-durationpart-label");
+			fieldLabelHours.getStyleClass ().add ("input-durationpart-minutes-label");
+
 			hb.getStyleClass ().add ("input-duration");
+			hb.getStyleClass ().add (dataElement.elementId);
 
 			return hb;
 		}
+	}
+
+	////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////
+	public static void main (String[] args) throws Exception {
+		final UUID mainPanelUuid = UUID.fromString ("50bca6cd-cbed-4af9-9d3d-881bafca45d8");
+
+		final DurationDataElement lde = new DurationDataElement ("titole", "iid");
+		lde.setPanelInstanceUuid (mainPanelUuid);
+
+		FacesPanels.getInstance ().registerPanel (lde);
+
+		DataElementRegistry.getInstance ().registerDataElement (lde, null);
+
+		String envName = "listDataElementTest";
+
+		Preferences systemPrefs = PrefConf.getInstance ().getSystemConfigurationForEnvironment (FacesConfiguration.class, envName);
+		systemPrefs.put ("loggingLevel", "ALL");
+		systemPrefs.put ("moduleList", DataElementsModule.class.getCanonicalName ());
+		systemPrefs.put ("mainPanelUuid", mainPanelUuid.toString ());
+
+		FacesMain.doBeforePrimaryStageShow (() -> {
+			Stage primaryStage = FacesMain.getInstanceWhenCreated ().getPrimaryStage ();
+
+			primaryStage.setMinWidth (1024.0);
+			primaryStage.setMinHeight (768.0);
+
+			primaryStage.onHidingProperty ().set (new EventHandler<WindowEvent> () {
+				@Override
+				public void handle (WindowEvent event) {
+					System.out.println ("Will be saved as: " + lde.jsonValueProperty ().toJsonString ());
+					System.out.println ("Displayed string val: " + lde.displayedStringProperty ().get ());
+				}
+			});
+		});
+
+		Thread t = new Thread (new Runnable () {
+			@Override
+			public void run () {
+				DataElement sde = DataElementRegistry.getInstance ().getDataElement ("iid");
+
+				while (true) {
+					System.out.println (sde.obtainValue ());
+					try {
+						Thread.sleep (1000L);
+					} catch (InterruptedException ex) {
+						Logger.getLogger (StringDataElement.class.getName ()).log (Level.SEVERE, null, ex);
+					}
+				}
+			}
+		});
+		t.setDaemon (true);
+		t.start ();
+
+		FacesMain.main (new String[]{"-e", envName});
 	}
 }
